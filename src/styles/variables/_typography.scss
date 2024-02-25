@@ -1,0 +1,102 @@
+@use '../variables/functions' as *;
+
+@mixin text-xs {
+  font-size: size(3);
+  line-height: size(4);
+}
+
+@mixin text-sm {
+  font-size: size(3.5);
+  line-height: size(5);
+}
+
+@mixin text-base {
+  font-size: size(4);
+  line-height: size(6);
+}
+
+@mixin text-lg {
+  font-size: size(4.5);
+  line-height: size(7);
+}
+
+@mixin text-xl {
+  font-size: size(5);
+  line-height: size(7);
+}
+
+@mixin text-2xl {
+  font-size: size(6);
+  line-height: size(8);
+}
+
+@mixin text-3xl {
+  font-size: size(7.5);
+  line-height: size(9);
+}
+
+@mixin text-4xl {
+  font-size: size(9);
+  line-height: size(10);
+}
+
+@mixin text-5xl {
+  font-size: size(12);
+  line-height: 1;
+}
+
+@mixin text-6xl {
+  font-size: size(15);
+  line-height: 1;
+}
+
+@mixin text-7xl {
+  font-size: size(18);
+  line-height: 1;
+}
+
+@mixin text-8xl {
+  font-size: size(24);
+  line-height: 1;
+}
+
+@mixin text-9xl {
+  font-size: size(32);
+  line-height: 1;
+}
+
+@mixin font-thin {
+  font-weight: 100;
+}
+
+@mixin font-extralight {
+  font-weight: 200;
+}
+
+@mixin font-light {
+  font-weight: 300;
+}
+
+@mixin font-normal {
+  font-weight: 400;
+}
+
+@mixin font-medium {
+  font-weight: 500;
+}
+
+@mixin font-semibold {
+  font-weight: 600;
+}
+
+@mixin font-bold {
+  font-weight: 700;
+}
+
+@mixin font-extrabold {
+  font-weight: 800;
+}
+
+@mixin font-black {
+  font-weight: 900;
+}

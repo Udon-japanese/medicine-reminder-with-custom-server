@@ -1,0 +1,26 @@
+@use '../button' as *;
+
+.mobile-btn {
+  @include button($blue-500);
+  @include text-4xl;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: size(12);
+  height: size(12);
+  color: $white;
+  position: fixed;
+  bottom: size(20);
+  right: size(5);
+}
+
+.desktop-btn {
+  @include button-with-icon($blue-500);
+  @include text-base;
+  color: $white;
+  padding: size(1.5) size(4);
+}
+
+.desktop-btn-icon {
+  @include text-xl;
+}

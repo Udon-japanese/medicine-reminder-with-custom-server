@@ -1,0 +1,28 @@
+.root {
+  width: size(13);
+  height: size(7);
+  background-color: $gray-200;
+  border-radius: 9999px;
+  position: relative;
+  transition: background-color 100ms;
+}
+
+.root[data-state='checked'] {
+  background-color: $green-500;
+  transition: background-color 100ms;
+}
+
+.thumb {
+  display: block;
+  width: size(6);
+  height: size(6);
+  background-color: $white;
+  border-radius: 9999px;
+  transition: transform 100ms;
+  transform: translateX(2px);
+  will-change: transform;
+}
+
+.thumb[data-state='checked'] {
+  transform: translateX(size(6.5));
+}

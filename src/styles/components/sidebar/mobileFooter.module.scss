@@ -1,0 +1,16 @@
+.footer {
+  position: fixed;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  bottom: 0;
+  z-index: 40;
+  align-items: center;
+  background: #fff;
+  border-top: 1px solid rgb(152, 152, 152);
+  height: size(13);
+
+  @include mq() {
+    display: none;
+  }
+}

@@ -1,0 +1,12 @@
+.sidebar {
+  height: 100%;
+}
+
+.main {
+  padding-bottom: size(13);
+
+  @include mq() {
+    padding-left: size(20);
+    height: 100%;
+  }
+}

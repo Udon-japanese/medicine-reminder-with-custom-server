@@ -1,0 +1,30 @@
+@use '../variables/hover' as *;
+@use '../variables/functions' as *;
+
+@mixin button($color) {
+  outline: none;
+  border: none;
+  border-radius: 9999px;
+  background-color: $color;
+  cursor: pointer;
+
+  @include hover() {
+    transition-duration: 0.1s;
+    background-color: darken($color, 10%);
+  }
+  &:disabled {
+    background-color: lighten($color, 10%);
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-with-icon($color) {
+  @include button($color);
+  display: inline-flex;
+  align-items: center;
+  text-align: center;
+
+  &>svg {
+    margin-right: size(1);
+  }
+}

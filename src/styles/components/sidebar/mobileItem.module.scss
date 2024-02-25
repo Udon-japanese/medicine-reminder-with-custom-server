@@ -1,0 +1,13 @@
+.item {
+  margin: 0.25rem 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  color: $black;
+}
+
+.label {
+  @include text-xs;
+}

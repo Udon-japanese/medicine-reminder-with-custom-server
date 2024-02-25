@@ -1,0 +1,32 @@
+.trigger {
+  @include mq() {
+    display: inline-flex;
+  }
+}
+
+.content {
+  z-index: 40;
+  align-items: center;
+  border-radius: size(1.5);
+  border-width: 1px;
+  border-color: $gray-200;
+  background-color: $white;
+  drop-shadow: drop-shadow(0 10px 8px rgba($black, 0.04)) drop-shadow(0 4px 3px rgba($black, 0.1));
+  animation: slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @include mq() {
+    display: block;
+  }
+}
+
+@keyframes slide-up-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

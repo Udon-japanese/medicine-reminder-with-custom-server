@@ -1,0 +1,52 @@
+.overlay {
+  animation: fade-in 0.3s ease-out forwards;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background-color: rgba($black, 0.7);
+}
+
+.content {
+  animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  margin: auto;
+  max-height: fit-content;
+  width: 100%;
+  max-width: size(110);
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background-color: $white;
+  padding: 0;
+  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba($black, 0.05);
+  border-radius: size(4);
+}
+
+.full-screen {
+  min-height: 100vh;
+  min-width: 100vw;
+  border-radius: 0;
+  top: 0;
+  left: 0;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

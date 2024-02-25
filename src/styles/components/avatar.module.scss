@@ -1,0 +1,28 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  border-radius: 100%;
+  overflow: hidden;
+  user-select: none;
+  height: size(7);
+  width: size(7);
+
+  @include mq() {
+    height: size(9);
+    width: size(9);
+  }
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.active {
+  border: solid 2px #6189ff;
+}

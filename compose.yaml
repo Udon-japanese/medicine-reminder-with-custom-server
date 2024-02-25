@@ -1,0 +1,16 @@
+version: '3'
+services:
+  db:
+    build:
+      context: "."
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: medicine_reminder
+    ports:
+      - 5432:5432
+    volumes:
+      - medicine-reminder-data:/var/lib/postgresql/data
+volumes:
+  medicine-reminder-data:
+    external: true

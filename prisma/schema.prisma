@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?      @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  medicines     Medicine[]
+  medicineUnits MedicineUnit[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model Medicine {
+  id          String               @id @db.Uuid
+  name        String               @db.VarChar(80)
+  intakeTimes MedicineIntakeTime[]
+  frequency   Frequency?
+  period      Period?
+  notify      Boolean?
+  unit        String               @db.VarChar(20)
+  stock       Stock?
+  memo        Memo?
+  userId      String
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("medicines")
+}
+
+model MedicineIntakeTime {
+  id         Int      @id @default(autoincrement())
+  time       Int
+  dosage     Float
+  medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  medicineId String   @db.Uuid
+
+  @@index([medicineId])
+  @@map("medicineintaketimes")
+}
+
+model Stock {
+  id          Int      @id @default(autoincrement())
+  quantity    Int
+  autoConsume Boolean
+  medicine    Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  medicineId  String   @unique @db.Uuid
+
+  @@index([medicineId])
+  @@map("stocks")
+}
+
+model Frequency {
+  id                  Int           @id @default(autoincrement())
+  type                FrequencyType
+  everyXDay           Int?
+  specificDaysOfWeek  DayOfWeek[]
+  specificDaysOfMonth Int[]
+  oddEvenDay          OddEvenDay?
+  onOffDays           OnOffDays?
+  medicineId          String        @unique @db.Uuid
+  medicine            Medicine      @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId])
+  @@map("frequencies")
+}
+
+model Period {
+  id         Int      @id @default(autoincrement())
+  startDate  DateTime @db.Timestamptz(6)
+  days       Int?
+  medicineId String   @unique @db.Uuid
+  medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId])
+  @@map("periods")
+}
+
+model Memo {
+  id         Int      @id @default(autoincrement())
+  text       String?  @db.VarChar(255)
+  imageUrl   String?
+  medicineId String   @unique @db.Uuid
+  medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@map("memos")
+}
+
+model OddEvenDay {
+  id          Int       @id @default(autoincrement())
+  isOddDay    Boolean
+  frequencyId Int       @unique
+  frequency   Frequency @relation(fields: [frequencyId], references: [id], onDelete: Cascade)
+
+  @@map("oddevendays")
+}
+
+model OnOffDays {
+  id          Int       @id @default(autoincrement())
+  onDays      Int
+  offDays     Int
+  frequencyId Int       @unique
+  frequency   Frequency @relation(fields: [frequencyId], references: [id], onDelete: Cascade)
+
+  @@map("onoffdays")
+}
+
+model MedicineUnit {
+  id     Int    @id @default(autoincrement())
+  unit   String @db.VarChar(20)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("medicineunits")
+}
+
+enum FrequencyType {
+  EVERYDAY
+  EVERY_X_DAY
+  SPECIFIC_DAYS_OF_WEEK
+  SPECIFIC_DAYS_OF_MONTH
+  ODD_EVEN_DAY
+  ON_OFF_DAYS
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}

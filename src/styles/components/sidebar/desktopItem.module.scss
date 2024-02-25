@@ -1,0 +1,49 @@
+.li {
+  width: 100%;
+}
+
+@mixin active-item-styles {
+  color: black;
+  background-color: $gray-100;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: size(6);
+  column-gap: size(3);
+  color: $black;
+  width: 100%;
+
+  @include hover() {
+    .icon {
+      @include active-item-styles;
+    }
+  }
+}
+
+.icon {
+  border-radius: size(1.5);
+  padding: size(1);
+}
+
+@mixin label-styles {
+  @include text-xs;
+  @include font-bold;
+  text-align: center;
+}
+
+.my-page-label {
+  @include label-styles;
+  margin-top: size(1);
+}
+
+.label {
+  @include label-styles;
+}
+
+.active {
+  @include active-item-styles;
+}
