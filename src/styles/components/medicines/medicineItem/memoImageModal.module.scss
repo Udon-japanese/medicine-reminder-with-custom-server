@@ -1,0 +1,25 @@
+.image {
+  height: auto;
+  width: 100%;
+  object-fit: contain;
+}
+
+.close-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: size(8);
+  height: size(8);
+  border-radius: 9999px;
+  background-color: rgba($gray-100, 0.6);
+  position: absolute;
+  top: size(2);
+  right: size(2);
+  z-index: 1;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

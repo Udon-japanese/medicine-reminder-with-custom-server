@@ -14,6 +14,8 @@ export function Popover({
   setOpenPopover,
   mobileOnly,
   isDrawerFullHeight = false,
+  drawerClassName = '',
+  popoverClassName = ''
 }: {
   children: ReactNode;
   content: ReactNode | string;
@@ -22,6 +24,8 @@ export function Popover({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
   mobileOnly?: boolean;
   isDrawerFullHeight?: boolean;
+  drawerClassName?: string;
+  popoverClassName?: string;
 }) {
   const { isMd } = useMediaQuery();
 
@@ -36,7 +40,7 @@ export function Popover({
           <Drawer.Content
             className={`${drawerStyles.content} ${isDrawerFullHeight ? drawerStyles.fullHeight : ''}`}
           >
-            <div className={drawerStyles.body}>
+            <div className={`${drawerStyles.body} ${drawerClassName}`}>
               <div className={drawerStyles.handle} />
               {content}
             </div>
@@ -55,7 +59,7 @@ export function Popover({
         <PopoverPrimitive.Content
           sideOffset={8}
           align={align}
-          className={popoverStyles.content}
+          className={`${popoverStyles.content} ${popoverClassName}`}
         >
           {content}
         </PopoverPrimitive.Content>

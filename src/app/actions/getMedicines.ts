@@ -25,6 +25,9 @@ const getMedicines = async () => {
         stock: true,
         memo: true,
       },
+      orderBy: {
+        updatedAt: 'desc',
+      },
     });
 
     return medicines;

@@ -1,0 +1,113 @@
+.item {
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  border-radius: size(2);
+  background-color: $gray-50;
+  box-shadow: 0 0 2px 0 rgba($black, 0.2);
+  padding: size(4) size(3.5);
+  margin-bottom: size(3);
+  height: 100%;
+}
+
+.medicine-info {
+  width: 100%;
+  max-width: calc(100vw - size(22));
+  white-space: nowrap;
+  @include text-xs;
+  display: flex;
+  flex-direction: column;
+
+  @include mq() {
+    max-width: calc(100% - size(9));
+  }
+}
+
+.info-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: size(1);
+}
+
+.info-label {
+  margin-right: size(4);
+}
+
+.intake-times-container {
+  overflow: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.intake-time {
+  background-color: $gray-200;
+  border-radius: size(1);
+  padding: size(0.25) size(1.5);
+  margin-right: size(1);
+}
+
+.frequency {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.exhaustion-date {
+  margin-left: size(2);
+}
+
+.notify-container {
+  margin-left: auto;
+  margin-top: auto;
+}
+
+.notify-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 9999px;
+  width: size(9);
+  height: size(9);
+}
+
+.is-notify {
+  background-color: $green-400;
+}
+
+.is-not-notify {
+  background-color: $gray-200;
+}
+
+.paused-container {
+  width: 100%;
+  color: $gray-400;
+  display: flex;
+  justify-content: space-between;
+  @include font-medium;
+  @include text-lg;
+}
+
+.paused-name {
+  @include line-clamp(1);
+}
+
+.pause-wrapper {
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+
+  @include mq() {
+    margin-top: auto;
+  }
+
+  @include text-4xl;
+}
+
+.name {
+  @include font-medium;
+  @include text-lg;
+  @include line-clamp(1);
+  margin-bottom: size(2);
+}

@@ -37,6 +37,7 @@ export async function POST(req: Request) {
 
   try {
     const currentUnits = await getMedicineUnits();
+    const uniqueCurrentUnits = [...new Set(currentUnits.map((u) => u.unit))];
     const body = await req.json();
     const validation = medicineUnitFormSchema.safeParse(body);
     if (!validation.success) {
@@ -45,9 +46,10 @@ export async function POST(req: Request) {
       });
     }
 
-    let { units: newUnits } = validation.data;
-    newUnits = newUnits.filter(
-      (unit) => !currentUnits.map((u) => u.unit).includes(unit.unit),
+    const { units: newUnits } = validation.data;
+
+    newUnits.filter(
+      (unit) => !uniqueCurrentUnits.includes(unit.unit),
     );
 
     const data = newUnits.map((unit) => ({
@@ -77,6 +79,14 @@ export async function DELETE(req: Request) {
   try {
     const medUnitsToDelete: MedicineUnit[] = await req.json();
     const idsToDelete = medUnitsToDelete.map((u) => u.id);
+
+    const currentUnits = await getMedicineUnits();
+
+    if (currentUnits.length <= idsToDelete.length) {
+      return new NextResponse('Cannot delete all units. At least one unit must remain.', {
+        status: 400,
+      });
+    }
 
     await prisma.medicineUnit.deleteMany({
       where: {

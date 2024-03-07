@@ -1,0 +1,67 @@
+@use './label-value-container' as *;
+
+.drawer {
+  background-color: $gray-100;
+}
+
+.drawer-header {
+  @include text-xl;
+  @include font-medium;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: size(3);
+
+  @include mq() {
+    display: none;
+  }
+}
+
+.container {
+  @include mq() {
+    padding: size(5);
+    width: size(100);
+  }
+}
+
+.quantity-container {
+  width: 100%;
+  margin-bottom: size(3);
+  margin-top: size(5);
+}
+
+.err-message {
+  @include text-xs;
+  color: $red-400;
+  margin-top: size(1);
+}
+
+.auto-consume-container {
+  @include label-value-container;
+  flex-direction: column;
+}
+
+.label-container {
+  @include label-value-container;
+}
+
+.label-and-button-container {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: size(1);
+}
+
+.info {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  @include text-xs;
+  color: $gray-400;
+}
+
+.quantity-label {
+  @include text-xs;
+  margin-bottom: size(1);
+}

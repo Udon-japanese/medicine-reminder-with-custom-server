@@ -1,0 +1,23 @@
+@use '../variables/typography' as *;
+@use '../variables/palettes' as *;
+@use '../variables/functions' as *;
+@use '../variables/breakpoints' as *;
+
+@mixin input {
+  @include text-sm;
+  border-radius: size(2);
+  padding: size(2.5) size(3);
+  border-width: 1px;
+  border-style: solid;
+  border-color: $gray-200;
+  transition-duration: 0.1s;
+  outline: none;
+  cursor: text;
+  height: size(8);
+
+  &:disabled {
+    background-color: rgba($white, 0.4);
+    border-color: rgba($white, 0.4);
+    cursor: not-allowed;
+  }
+}

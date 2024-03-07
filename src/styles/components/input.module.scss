@@ -1,0 +1,55 @@
+@use 'input' as *;
+
+.input-container {
+  width: 100%;
+}
+
+.input {
+  @include input;
+  width: 100%;
+}
+
+.label-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.label {
+  @include text-xs;
+  margin-bottom: size(0.5);
+}
+
+.bottom-message-container {
+  @include text-xs;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: size(1);
+}
+
+.err-message {
+  color: $red-400;
+}
+
+.overflow {
+  color: $red-400;
+  margin-left: auto;
+}
+
+.number-format {
+  color: $gray-400;
+  margin-left: auto;
+}
+
+.is-invalid {
+  border-width: 2px;
+  border-color: $red-400;
+}
+
+.is-valid {
+  &:focus {
+    border-width: 2px;
+    border-color: $blue-400;
+  }
+}

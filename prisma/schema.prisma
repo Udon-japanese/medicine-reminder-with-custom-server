@@ -41,15 +41,16 @@ model Session {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  name          String?
-  email         String?        @unique
-  emailVerified DateTime?      @map("email_verified")
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-  medicines     Medicine[]
-  medicineUnits MedicineUnit[]
+  id              String           @id @default(cuid())
+  name            String?
+  email           String?          @unique
+  emailVerified   DateTime?        @map("email_verified")
+  image           String?
+  accounts        Account[]
+  sessions        Session[]
+  medicines       Medicine[]
+  medicineUnits   MedicineUnit[]
+  medicineRecords MedicineRecord[]
 
   @@map("users")
 }
@@ -63,18 +64,39 @@ model VerificationToken {
   @@map("verificationtokens")
 }
 
+model MedicineRecord {
+  id               Int       @id @default(autoincrement())
+  userId           String
+  medicineId       String    @db.Uuid
+  dosage           Float
+  intakeTime       Int
+  intakeDate       DateTime  @db.Timestamptz(6)
+  actualIntakeTime Int?
+  actualIntakeDate DateTime? @db.Timestamptz(6)
+  isCompleted      Boolean   @default(false)
+  isSkipped        Boolean   @default(false)
+  medicine         Medicine  @relation(fields: [medicineId], references: [id])
+  user             User      @relation(fields: [userId], references: [id])
+
+  @@index([medicineId, userId, intakeTime, actualIntakeTime])
+  @@map("medicinerecords")
+}
+
 model Medicine {
-  id          String               @id @db.Uuid
-  name        String               @db.VarChar(80)
-  intakeTimes MedicineIntakeTime[]
-  frequency   Frequency?
-  period      Period?
-  notify      Boolean?
-  unit        String               @db.VarChar(20)
-  stock       Stock?
-  memo        Memo?
-  userId      String
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String               @id @db.Uuid
+  name            String               @db.VarChar(30)
+  intakeTimes     MedicineIntakeTime[]
+  frequency       Frequency?
+  period          Period?
+  notify          Boolean?
+  unit            String               @db.VarChar(10)
+  stock           Stock?
+  memo            Memo?
+  updatedAt       DateTime             @default(now()) @db.Timestamptz(6)
+  isPaused        Boolean              @default(false)
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medicineRecords MedicineRecord[]
 
   @@index([userId])
   @@map("medicines")
@@ -131,7 +153,7 @@ model Period {
 model Memo {
   id         Int      @id @default(autoincrement())
   text       String?  @db.VarChar(255)
-  imageUrl   String?
+  imageId    String?
   medicineId String   @unique @db.Uuid
   medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
 
@@ -177,11 +199,11 @@ enum FrequencyType {
 }
 
 enum DayOfWeek {
+  SUNDAY
   MONDAY
   TUESDAY
   WEDNESDAY
   THURSDAY
   FRIDAY
   SATURDAY
-  SUNDAY
 }

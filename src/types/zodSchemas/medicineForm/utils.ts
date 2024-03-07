@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+
 export function getDuplicateStringIndexes(array: string[]): number[] {
   const indexMap = new Map();
   const duplicateIndexes = new Set<number>();
@@ -37,7 +39,7 @@ export function getDuplicateDateIndexes(array: Date[]): number[] {
       continue;
     }
 
-    const dateString = array[i].toISOString();
+    const dateString = format(array[i], 'HH:mm');
 
     if (dateStringMap[dateString]) {
       dateStringMap[dateString].push(i);

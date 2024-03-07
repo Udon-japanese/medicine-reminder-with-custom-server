@@ -19,15 +19,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   events: {
-    async session({ session }) {
-      const user = await prisma.user.findUnique({
+    async signIn({isNewUser, user}) {
+      const existingMedicineUnits = await prisma.medicineUnit.findMany({
         where: {
-          email: session?.user?.email!,
-        },
+          userId: user.id,
+        }
       });
-      const existingUnits = await prisma.medicineUnit.findMany();
-      if (existingUnits.length === 0) {
-        const units = [
+
+      if (isNewUser || existingMedicineUnits.length === 0) {
+        const defaultUnits = [
           '錠',
           'カプセル',
           '包',
@@ -40,9 +40,9 @@ export const authOptions: NextAuthOptions = {
           '個',
           '本',
         ];
-        const data = units.map((unit) => ({
+        const data = defaultUnits.map((unit) => ({
           unit: unit,
-          userId: user?.id!,
+          userId: user?.id,
         }));
 
         await prisma.medicineUnit.createMany({

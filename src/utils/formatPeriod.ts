@@ -1,14 +1,18 @@
 import { addHours, format, getYear, isDate } from 'date-fns';
 import { isInvalidDate } from './isInvalidDate';
 
-export const formatPeriod = (
-  startDate: unknown | undefined,
-  hasDeadline: unknown | undefined,
-  days?: unknown | undefined,
-) => {
+export const formatPeriod = ({
+  startDate,
+  hasDeadline,
+  days,
+}: {
+  startDate: unknown | undefined;
+  hasDeadline: unknown | undefined;
+  days?: unknown | undefined;
+}) => {
   const isDaysValid =
-    (typeof days === 'string' || typeof days === 'number') &&
-    Number.isInteger(Number(days === '' ? NaN : days));
+    ((typeof days === 'string' && days.trim() !== '') || typeof days === 'number') &&
+    Number.isInteger(Number(days));
   if (typeof startDate === 'undefined' || typeof hasDeadline === 'undefined') {
     return '';
   }

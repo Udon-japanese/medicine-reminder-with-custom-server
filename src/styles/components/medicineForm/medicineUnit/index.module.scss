@@ -1,0 +1,74 @@
+@use '../label-value-container' as *;
+
+.drawer {
+  background-color: $gray-100;
+}
+
+.container {
+  margin-top: size(3);
+  background-color: $gray-200;
+}
+
+.popover-container {
+  min-width: size(40);
+  max-width: 100%;
+  padding: size(2);
+}
+
+.medicine-units-container {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: size(2);
+  align-items: stretch;
+
+  @include mq(sm) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+  }
+
+  @include mq() {
+    display: block;
+  }
+}
+
+.popover-edit-unit-button {
+  width: 100%;
+  text-align: start;
+  @include text-sm;
+  margin-left: size(2);
+  margin-top: size(1);
+  color: $gray-400;
+}
+
+.drawer-edit-unit-button {
+  @include text-sm;
+  color: $gray-400;
+}
+
+.label-container {
+  @include label-value-container;
+  margin-top: size(7);
+  margin-bottom: size(2);
+}
+
+.drawer-header-container {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: size(4);
+
+  @include mq() {
+    display: none;
+  }
+}
+
+.drawer-header {
+  @include text-xl;
+  @include font-medium;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

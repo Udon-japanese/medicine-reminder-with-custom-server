@@ -1,0 +1,37 @@
+@use '../input' as *;
+
+.input-container {
+  @include input;
+  display: flex;
+  align-items: center;
+  background-color: $white;
+}
+
+.is-invalid {
+  border-width: 2px;
+  border-color: $red-400;
+}
+
+.is-valid {
+  &:focus-within {
+    border-width: 2px;
+    border-color: $blue-400;
+  }
+}
+
+.input {
+  width: 100%;
+  outline: none;
+  border: none;
+}
+
+.label {
+  @include text-xs;
+  white-space: nowrap;
+  margin-left: size(1);
+}
+
+.err-container {
+  display: flex;
+  margin-top: size(1);
+}

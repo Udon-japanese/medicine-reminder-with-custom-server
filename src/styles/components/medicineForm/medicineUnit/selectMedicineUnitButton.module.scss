@@ -1,0 +1,23 @@
+@use '../desktop-popover-item' as *;
+
+.popover-item {
+  @include text-sm;
+  padding: size(1.5) 0;
+  color: $black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  border-radius: size(2);
+  background: $white;
+  
+  @include mq() {
+    @include desktop-popover-item;
+  }
+}
+
+.drawer-current-item {
+  color: $white;
+  background: $blue-600;
+}

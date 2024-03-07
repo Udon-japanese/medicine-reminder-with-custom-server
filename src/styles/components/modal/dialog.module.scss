@@ -7,15 +7,16 @@
 }
 
 .content {
+  overflow: auto;
   animation: scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   position: fixed;
   inset: 0;
   z-index: 50;
   margin: auto;
-  max-height: fit-content;
-  width: 100%;
-  max-width: size(110);
-  overflow: hidden;
+  height: fit-content;
+  max-height: 60vh;
+  width: 65vw;
+  max-width: size(200);
   border: 1px solid #e5e7eb;
   background-color: $white;
   padding: 0;
@@ -24,8 +25,10 @@
 }
 
 .full-screen {
+  height: 100vh;
   min-height: 100vh;
   min-width: 100vw;
+  overflow: auto;
   border-radius: 0;
   top: 0;
   left: 0;

@@ -5,6 +5,7 @@ import {
   getDuplicateStringIndexes,
   getEmptyStringIndexes,
 } from './utils';
+import { dateSchema } from '../schema';
 
 const stockSchema = z.discriminatedUnion('manageStock', [
   z.object({
@@ -29,11 +30,7 @@ const stockSchema = z.discriminatedUnion('manageStock', [
 
 const intakeTimesSchema = z.array(
   z.object({
-    time: z.coerce.date({
-      errorMap: (issue, { defaultError }) => ({
-        message: issue.code === 'invalid_date' ? '時間を入力してください' : defaultError,
-      }),
-    }),
+    time: dateSchema,
     dosage: z
       .string()
       .refine((d) => !Number.isNaN(Number(d)), { message: '数値のみ入力できます' })
@@ -56,7 +53,7 @@ const intakeTimesSchema = z.array(
 const periodSchema = z.discriminatedUnion('hasDeadline', [
   z.object({
     hasDeadline: z.literal(true),
-    startDate: z.coerce.date(),
+    startDate: dateSchema,
     days: z
       .string()
       .optional()
@@ -66,7 +63,7 @@ const periodSchema = z.discriminatedUnion('hasDeadline', [
   }),
   z.object({
     hasDeadline: z.literal(false),
-    startDate: z.coerce.date(),
+    startDate: dateSchema,
   }),
 ]);
 
@@ -92,17 +89,9 @@ const frequencySchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal(FrequencyType.SPECIFIC_DAYS_OF_WEEK),
     specificDaysOfWeek: z
-      .array(
-        z.union([
-          z.literal(DayOfWeek.MONDAY),
-          z.literal(DayOfWeek.TUESDAY),
-          z.literal(DayOfWeek.WEDNESDAY),
-          z.literal(DayOfWeek.THURSDAY),
-          z.literal(DayOfWeek.FRIDAY),
-          z.literal(DayOfWeek.SATURDAY),
-          z.literal(DayOfWeek.SUNDAY),
-        ]),
-      )
+      .array(z.nativeEnum(DayOfWeek), {
+        invalid_type_error: '曜日を１つ以上選択してください',
+      })
       .min(1, '曜日を１つ以上選択してください')
       .max(7)
       .refine((daysOfWeek) => new Set(daysOfWeek).size === daysOfWeek.length, {
@@ -114,10 +103,11 @@ const frequencySchema = z.discriminatedUnion('type', [
     specificDaysOfMonth: z
       .array(
         z
-          .number({invalid_type_error: '無効な日数です'})
+          .number({ invalid_type_error: '無効な日数です' })
           .int('無効な日数です')
           .min(1, '日数は1以上の数値を入力してください')
           .max(31, '日数は31以上の数値を入力してください'),
+        { invalid_type_error: '日付を１つ以上選択してください' },
       )
       .min(1, '日付を1つ以上選択してください')
       .max(31)
@@ -141,8 +131,8 @@ export const medicineFormSchema = z
     name: z
       .string()
       .trim()
-      .min(1, 'お薬の名前を入力してください')
-      .max(80, 'お薬名は80文字まで入力できます'),
+      .min(1, 'お薬名を入力してください')
+      .max(30, 'お薬名は30文字まで入力できます'),
     intakeTimes: intakeTimesSchema,
     frequency: frequencySchema.nullable(),
     period: periodSchema.nullable(),
@@ -153,12 +143,12 @@ export const medicineFormSchema = z
       .string()
       .trim()
       .min(1, '単位を設定してください')
-      .max(20, '20文字以内の単位のみ設定できます'),
+      .max(10, '10文字以内の単位のみ設定できます'),
     stock: stockSchema,
     memo: z.string().trim().max(255, 'メモは255文字まで入力できます').optional(),
   })
   .refine(
-    ({intakeTimes, frequency, notify, period}) => {
+    ({ intakeTimes, frequency, notify, period }) => {
       if (intakeTimes.length === 0) return true;
 
       return frequency !== null && notify !== null && period !== null;
@@ -187,7 +177,7 @@ export const medicineUnitFormSchema = z
           .string()
           .trim()
           .min(1, '単位を入力してください')
-          .max(20, '単位は20文字まで入力できます'),
+          .max(10, '単位は10文字まで入力できます'),
       }),
     ),
   })
@@ -196,7 +186,7 @@ export const medicineUnitFormSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: '単位が重複しています',
-        path: ['units', index],
+        path: ['units', index, 'unit'],
       });
     });
   })
@@ -205,7 +195,7 @@ export const medicineUnitFormSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: '単位を入力してください',
-        path: ['units', index],
+        path: ['units', index, 'unit'],
       });
     });
   });

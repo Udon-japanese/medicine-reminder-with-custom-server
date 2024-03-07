@@ -1,6 +1,6 @@
 .root {
-  width: size(13);
-  height: size(7);
+  width: size(10.4);
+  height: size(5.6);
   background-color: $gray-200;
   border-radius: 9999px;
   position: relative;
@@ -14,15 +14,15 @@
 
 .thumb {
   display: block;
-  width: size(6);
-  height: size(6);
+  width: size(4.8);
+  height: size(4.8);
   background-color: $white;
   border-radius: 9999px;
   transition: transform 100ms;
-  transform: translateX(2px);
+  transform: translateX(1.6px);
   will-change: transform;
 }
 
 .thumb[data-state='checked'] {
-  transform: translateX(size(6.5));
+  transform: translateX(size(5.2));
 }

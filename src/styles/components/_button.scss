@@ -13,7 +13,7 @@
     background-color: darken($color, 10%);
   }
   &:disabled {
-    background-color: lighten($color, 10%);
+    background-color: rgba($color, 0.4);
     cursor: not-allowed;
   }
 }
@@ -25,6 +25,6 @@
   text-align: center;
 
   &>svg {
-    margin-right: size(1);
+    margin-right: size(0.5);
   }
 }

@@ -1,0 +1,32 @@
+.container {
+  border-radius: size(2);
+  background-color: $white;
+  border: 1px solid $gray-200;
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.day {
+  @include text-sm;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: size(8);
+  height: size(8);
+  margin: size(1.5);
+  border-radius: 9999px;
+}
+
+.selected-day {
+  background-color: $blue-600;
+  color: $white;
+}
+
+.err-message {
+  @include text-xs;
+  color: $red-400;
+  margin-top: size(2);
+}

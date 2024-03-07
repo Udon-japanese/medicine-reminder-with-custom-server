@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Noto_Sans_JP } from 'next/font/google';
 import AuthContext from './contexts/AuthContext';
 import { StyledEngineProvider } from '@mui/material/styles';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
 import '@unocss/reset/tailwind.css';
 import '@styles/global.scss';
 
-const inter = Inter({ subsets: ['latin'], preload: true });
+const notojp = Noto_Sans_JP({ subsets: ['latin'], display: 'swap', weight: ['400', '500'] });
 
 export const metadata: Metadata = {
   title: 'お薬リマインダー',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang='ja'>
-      <body className={inter.className}>
+      <body className={notojp.className}>
         <AppRouterCacheProvider options={{ key: 'css' }}>
           <StyledEngineProvider injectFirst>
             <AuthContext>{children}</AuthContext>

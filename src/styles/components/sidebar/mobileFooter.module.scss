@@ -7,7 +7,7 @@
   z-index: 40;
   align-items: center;
   background: #fff;
-  border-top: 1px solid rgb(152, 152, 152);
+  box-shadow: 0 -2px 5px rgba($gray-200, 0.1);
   height: size(13);
 
   @include mq() {

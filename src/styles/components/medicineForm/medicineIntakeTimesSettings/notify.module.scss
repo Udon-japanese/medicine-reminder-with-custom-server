@@ -1,0 +1,11 @@
+@use '../label-value-container' as *;
+
+.label-container {
+  @include label-value-container;
+}
+
+.err-message {
+  @include text-xs;
+  color: $red-400;
+  margin-top: size(1);
+}

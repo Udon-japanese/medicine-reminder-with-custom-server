@@ -1,0 +1,125 @@
+@use '../button' as *;
+
+.container {
+  width: 100%;
+  height: 100%;
+}
+
+.form-container {
+  padding-top: size(15);
+  padding-left: size(3);
+  padding-right: size(3);
+  height: 100%;
+  width: 100%;
+
+  @include mq() {
+    padding-top: size(10);
+    max-width: size(180);
+    margin: 0 auto;
+  }
+}
+
+.mobile-header-container {
+  position: fixed;
+  top: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  background: $white;
+  width: 100%;
+  height: size(12);
+
+  @include mq() {
+    display: none;
+  }
+}
+
+.desktop-header-container {
+  display: none;
+
+  @include mq() {
+    @include text-xl;
+    @include font-medium;
+    display: block;
+    margin-bottom: size(3);
+  }
+}
+
+.header-icon-container {
+  padding: 0 size(3);
+}
+
+.header-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin action-button($color) {
+  width: 75%;
+  @include button($color);
+  color: $white;
+  padding: size(2) size(3);
+
+  @include mq() {
+    width: size(30);
+  }
+}
+
+.submit-button {
+  @include action-button($blue-600);
+}
+
+.pause-restart-button {
+  @include action-button($gray-600);
+}
+
+.is-restart-button {
+  @include button($green-600);
+}
+
+.delete-button {
+  @include action-button($red-600);
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  margin-top: size(5);
+
+  @include mq() {
+    justify-content: flex-end;
+  }
+}
+
+.buttons-container {
+  @include mq() { 
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: size(5);
+  }
+}
+
+.mobile-liner-progress {
+  width: 100%;
+  position: absolute;
+  top: 0;
+
+  @include mq() {
+    display: none;
+  }
+}
+
+.desktop-liner-progress {
+  display: none;
+
+  @include mq() {
+    display: block;
+    width: 100%;
+    top: 0;
+    position: sticky;
+  }
+}

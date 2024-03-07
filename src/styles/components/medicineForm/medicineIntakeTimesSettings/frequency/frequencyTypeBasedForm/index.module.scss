@@ -1,0 +1,8 @@
+.container {
+  @include mq() {
+    margin-left: size(2);
+    width: size(90);
+    border-left: 1px solid $gray-200;
+    padding-left: size(4);
+  }
+}

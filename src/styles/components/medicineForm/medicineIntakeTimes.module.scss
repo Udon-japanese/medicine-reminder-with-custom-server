@@ -1,0 +1,64 @@
+@use '../button' as *;
+@use '../input' as *;
+
+.container {
+  @include text-sm;
+  margin-top: size(3);
+}
+
+.intake-time-container {
+  display: flex;
+  flex-direction: row;
+  margin-top: size(2);
+  gap: size(1);
+}
+
+.label-container {
+  display: flex;
+  flex-direction: row;
+  margin-right: size(6.5);
+  gap: size(1);
+  align-items: center;
+}
+
+.time-picker-container {
+  width: 40%;
+}
+
+.dosage-label {
+  width: 100%;
+}
+
+.time-label {
+  width: 40%;
+}
+
+.dosage-container {
+  width: 100%;
+}
+
+.err-message {
+  @include text-xs;
+  color: $red-400;
+}
+
+.add-intake-time-btn {
+  @include button-with-icon($white);
+  padding: size(1.5) size(3);
+  border: 1px solid $gray-300;
+  margin-top: size(2);
+}
+
+.add-intake-time-icon {
+  color: $green-600;
+}
+
+.delete-intake-time-btn {
+  margin-left: size(0.5);
+  width: size(8);
+  height: size(8);
+  color: $gray-500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -1,0 +1,47 @@
+@use '../../label-value-container' as *;
+
+.drawer {
+  background-color: $gray-100;
+}
+
+.label-container {
+  @include label-value-container;
+  margin-top: size(3);
+  margin-bottom: size(2);
+}
+
+.label {
+  white-space: nowrap;
+  margin-right: size(2);
+}
+
+.value {
+  text-align: start;
+}
+
+.popover-container {
+  max-width: 100%;
+  padding: size(2);
+}
+
+.frequency-container {
+  display: flex;
+  flex-direction: column;
+
+  @include mq() {
+    flex-direction: row;
+  }
+}
+
+.drawer-header {
+  @include text-xl;
+  @include font-medium;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: size(3);
+
+  @include mq() {
+    display: none;
+  }
+}

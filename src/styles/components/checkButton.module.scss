@@ -1,0 +1,14 @@
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: size(10);
+  height: size(10);
+  background: $blue-100;
+  border-radius: size(2);
+  color: $white;
+}
+
+.checked {
+  background: $blue-600;
+}

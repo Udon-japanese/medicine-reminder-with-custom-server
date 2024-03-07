@@ -1,0 +1,27 @@
+@use './input' as *;
+
+.field {
+  @include input;
+  width: 100%;
+  background: $white;
+  display: flex;
+  align-items: center;
+}
+
+.is-invalid {
+  border-width: 2px;
+  border-color: $red-400;
+}
+
+.is-valid {
+  &:focus {
+    border-width: 2px;
+    border-color: $blue-400;
+  }
+}
+
+.err-message {
+  @include text-xs;
+  color: $red-400;
+  margin-top: size(1);
+}

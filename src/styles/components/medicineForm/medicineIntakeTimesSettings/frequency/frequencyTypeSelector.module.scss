@@ -1,0 +1,18 @@
+@use './list-item' as *;
+
+.popover-item {
+  @include list-item;
+
+  @include mq() {
+    width: size(50);
+    height: fit-content;
+  }
+}
+
+.container {
+  margin-bottom: size(4);
+
+  @include mq() {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,15 @@
+@use '../list-item' as *;
+
+.item {
+  @include list-item;
+
+  @include mq() {
+    height: fit-content;
+  }
+}
+
+.err-message {
+  @include text-xs;
+  color: $red-400;
+  margin-top: size(2);
+}

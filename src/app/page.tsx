@@ -1,10 +1,12 @@
 'use client';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
 
-export default function Home() {
-  const searchParams = useSearchParams();
-  const {data: session} = useSession();
+export default function Home({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const { data: session } = useSession();
 
   return session?.user ? (
     <button onClick={() => signOut()}>ログアウト</button>
@@ -12,7 +14,7 @@ export default function Home() {
     <button
       onClick={() =>
         signIn('google', {
-          callbackUrl: searchParams.get('callbackUrl') || '/calendar',
+          callbackUrl: (searchParams.callbackUrl as string) || '/calendar',
         })
       }
     >

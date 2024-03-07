@@ -1,8 +1,8 @@
 import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
 import { convertMinutesAndDate } from '@/utils/convertMinutesAndDate';
-import { Prisma, DayOfWeek, FrequencyType } from '@prisma/client';
+import { DayOfWeek, FrequencyType, Prisma } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
-import { isCloudinaryUrl } from '@/lib/cloudinary';
+import { GetMedicineData } from './types';
 
 type Stock =
   | {
@@ -43,7 +43,7 @@ type Frequency =
 export function convertMedicineForm(form: MedicineForm) {
   const intakeTimes = form.intakeTimes.map((intakeTime) => ({
     time: convertMinutesAndDate(intakeTime.time),
-    dosage: parseFloat(intakeTime.dosage),
+    dosage: Number(intakeTime.dosage),
   }));
 
   const freqType = form?.frequency?.type;
@@ -76,18 +76,22 @@ export function convertMedicineForm(form: MedicineForm) {
   return { ...form, intakeTimes, frequency, period, stock };
 }
 
-type ReturnTypeOfConvertMedicineForm = ReturnType<typeof convertMedicineForm>;
-
-export function createMedicineData({
-  convertedMedicineForm,
+export function getCreateMedicineData({
+  convertedMedicine,
   userId,
-  imageUrl,
-}: {
-  convertedMedicineForm: ReturnTypeOfConvertMedicineForm;
-  userId: string;
-  imageUrl: any;
-}) {
-  const { name, intakeTimes, frequency, period, notify, unit, stock, memo: memoText } = convertedMedicineForm;
+  imageId,
+}: GetMedicineData) {
+  const {
+    name,
+    intakeTimes,
+    frequency,
+    period,
+    notify,
+    unit,
+    stock,
+    memo: memoText,
+  } = convertedMedicine;
+
   const data:
     | (Prisma.Without<Prisma.MedicineCreateInput, Prisma.MedicineUncheckedCreateInput> &
         Prisma.MedicineUncheckedCreateInput)
@@ -104,45 +108,58 @@ export function createMedicineData({
 
   if (intakeTimes.length > 0) {
     createFrequencyData();
-    createPeriodData();
+    data.period = {
+      create: {
+        startDate: period?.startDate!,
+        days: period?.hasDeadline ? period?.days : undefined,
+      },
+    };
     data.notify = notify;
   }
 
-  createMemoData();
-  createStockData();
+  if (stock.manageStock) {
+    data.stock = {
+      create: {
+        quantity: stock.quantity,
+        autoConsume: stock.autoConsume,
+      },
+    };
+  }
+
+  if (memoText || imageId) {
+    data.memo = {
+      create: {
+        imageId,
+        text: memoText,
+      },
+    };
+  }
 
   return data;
-
 
   function createFrequencyData() {
     if (!frequency) return;
 
     const freqType = frequency.type;
     switch (freqType) {
-      case 'EVERYDAY': 
+      case 'EVERYDAY':
         data.frequency = {
           create: {
             type: freqType,
           },
         };
         break;
-      case 'EVERY_X_DAY': 
+      case 'EVERY_X_DAY':
         data.frequency = {
-          create: {
-            type: freqType,
-            everyXDay: frequency.everyXDay,
-          },
+          create: { type: freqType, everyXDay: frequency.everyXDay },
         };
         break;
-      case 'SPECIFIC_DAYS_OF_WEEK': 
+      case 'SPECIFIC_DAYS_OF_WEEK':
         data.frequency = {
-          create: {
-            type: freqType,
-            specificDaysOfWeek: frequency.specificDaysOfWeek,
-          },
+          create: { type: freqType, specificDaysOfWeek: frequency.specificDaysOfWeek },
         };
         break;
-      case 'SPECIFIC_DAYS_OF_MONTH': 
+      case 'SPECIFIC_DAYS_OF_MONTH':
         data.frequency = {
           create: {
             type: freqType,
@@ -150,19 +167,17 @@ export function createMedicineData({
           },
         };
         break;
-      case 'ODD_EVEN_DAY': 
+      case 'ODD_EVEN_DAY':
         data.frequency = {
           create: {
             type: freqType,
             oddEvenDay: {
-              create: {
-                isOddDay: frequency.isOddDay,
-              },
+              create: { isOddDay: frequency.isOddDay },
             },
           },
         };
         break;
-      case 'ON_OFF_DAYS': 
+      case 'ON_OFF_DAYS':
         data.frequency = {
           create: {
             type: freqType,
@@ -177,56 +192,4 @@ export function createMedicineData({
         break;
     }
   }
-  function createPeriodData() {
-    const startDate = period?.startDate;
-
-    if (period?.hasDeadline) {
-      data.period = {
-        create: {
-          startDate: startDate!,
-          days: period?.days,
-        },
-      };
-    } else {
-      data.period = {
-        create: {
-          startDate: startDate!,
-        },
-      };
-    }
-  }
-  function createStockData() {
-    if (stock.manageStock) {
-      data.stock = {
-        create: {
-          quantity: stock.quantity,
-          autoConsume: stock.autoConsume,
-        },
-      };
-    }
-  }
-  function createMemoData() {
-    const isImageUrl = typeof imageUrl === 'string' && isCloudinaryUrl(imageUrl);
-
-    if (memoText && isImageUrl) {
-      data.memo = {
-        create: {
-          text: memoText,
-          imageUrl,
-        },
-      };
-    } else if (memoText) {
-      data.memo = {
-        create: {
-          text: memoText,
-        },
-      };
-    } else if (isImageUrl) {
-      data.memo = {
-        create: {
-          imageUrl,
-        },
-      };
-    }
-  };
 }

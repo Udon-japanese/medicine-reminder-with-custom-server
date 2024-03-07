@@ -1,0 +1,66 @@
+@use '../label-value-container' as *;
+@use '../../input' as *;
+
+.drawer {
+  background-color: $gray-100;
+}
+
+.container {
+  @include mq() {
+    padding: size(5);
+    width: size(100);
+  }
+}
+
+.label-container {
+  @include label-value-container;
+  margin-bottom: size(2);
+}
+
+.drawer-header {
+  @include text-xl;
+  @include font-medium;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: size(3);
+
+  @include mq() {
+    display: none;
+  }
+}
+
+.date-picker-container {
+  width: 100%;
+}
+
+.date-picker-label {
+  @include text-xs;
+  margin-bottom: size(1);
+  display: inline-block;
+}
+
+.has-deadline-label-container {
+  @include label-value-container;
+  margin-top: size(5);
+  margin-bottom: size(2);
+
+  @include mq() {
+    margin-top: size(8);
+    margin-bottom: size(4);
+  }
+}
+
+.days-container {
+  width: 100%;
+}
+
+.days-label {
+  @include text-xs;
+  margin-bottom: size(1);
+}
+
+.err-message {
+  @include text-xs;
+  color: $red-400;
+}
