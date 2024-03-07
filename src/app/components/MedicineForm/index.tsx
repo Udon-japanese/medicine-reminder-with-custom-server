@@ -58,7 +58,7 @@ export default function MedicineForm({
       frequency: null,
       notify: null,
       period: null,
-      unit: medicineUnits[0].unit,
+      unit: medicineUnits[0]?.unit,
       stock: {
         manageStock: false,
       },
