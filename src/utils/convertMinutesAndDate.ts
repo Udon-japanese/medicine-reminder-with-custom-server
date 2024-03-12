@@ -1,4 +1,4 @@
-import { isDate } from 'date-fns';
+import { getHours, getMinutes, isDate } from 'date-fns';
 import { isInvalidDate } from './isInvalidDate';
 
 type Return<T> = T extends number ? Date : T extends Date ? number : never;
@@ -13,8 +13,8 @@ export function convertMinutesAndDate<T>(value: T): Return<T> {
     date.setSeconds(0);
     return date as Return<T>;
   } else if (isDate(value) && !isInvalidDate(value)) {
-    const hours = value.getHours();
-    const minutes = value.getMinutes();
+    const hours = getHours(value);
+    const minutes = getMinutes(value);
     return (hours * 60 + minutes) as Return<T>;
   } else {
     throw new Error(`無効な値が渡されました: ${value}\n typeof ${typeof value}`);

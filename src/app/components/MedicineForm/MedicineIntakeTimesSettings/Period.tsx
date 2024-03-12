@@ -27,7 +27,6 @@ export default function Period() {
       <Popover
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
-        isDrawerFullHeight
         align='end'
         drawerClassName={styles.drawer}
         content={

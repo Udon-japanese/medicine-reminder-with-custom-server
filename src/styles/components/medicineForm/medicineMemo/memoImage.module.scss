@@ -10,6 +10,10 @@
   align-items: center;
   border-radius: size(2);
   background-color: $white;
+
+  @include hover {
+    background-color: $gray-50;
+  }
 }
 
 .image-container {

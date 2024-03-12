@@ -5,11 +5,20 @@
   border-radius: 9999px;
   position: relative;
   transition: background-color 100ms;
+
+  &:disabled {
+    cursor: not-allowed;
+    background-color: rgba($gray-200, 0.4);
+  }
 }
 
 .root[data-state='checked'] {
   background-color: $green-500;
   transition: background-color 100ms;
+
+  &:disabled {
+    background-color: rgba($green-500, 0.4);
+  }
 }
 
 .thumb {

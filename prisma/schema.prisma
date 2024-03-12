@@ -41,18 +41,30 @@ model Session {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  name            String?
-  email           String?          @unique
-  emailVerified   DateTime?        @map("email_verified")
-  image           String?
-  accounts        Account[]
-  sessions        Session[]
-  medicines       Medicine[]
-  medicineUnits   MedicineUnit[]
-  medicineRecords MedicineRecord[]
+  id                String             @id @default(cuid())
+  name              String?
+  email             String?            @unique
+  emailVerified     DateTime?          @map("email_verified")
+  image             String?
+  pushSubscriptions PushSubscription[]
+  accounts          Account[]
+  sessions          Session[]
+  medicines         Medicine[]
+  medicineUnits     MedicineUnit[]
+  medicineRecords   MedicineRecord[]
 
   @@map("users")
+}
+
+model PushSubscription {
+  id        Int    @id @default(autoincrement())
+  endpoint  String @unique
+  p256dhkey String
+  authKey   String
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("pushsubscriptions")
 }
 
 model VerificationToken {
@@ -65,20 +77,20 @@ model VerificationToken {
 }
 
 model MedicineRecord {
-  id               Int       @id @default(autoincrement())
-  userId           String
-  medicineId       String    @db.Uuid
-  dosage           Float
-  intakeTime       Int
-  intakeDate       DateTime  @db.Timestamptz(6)
-  actualIntakeTime Int?
-  actualIntakeDate DateTime? @db.Timestamptz(6)
-  isCompleted      Boolean   @default(false)
-  isSkipped        Boolean   @default(false)
-  medicine         Medicine  @relation(fields: [medicineId], references: [id])
-  user             User      @relation(fields: [userId], references: [id])
+  id                  Int       @id @default(autoincrement())
+  userId              String
+  medicineId          String    @db.Uuid
+  dosage              Float
+  scheduledIntakeTime Int?
+  scheduledIntakeDate DateTime? @db.Timestamptz(6)
+  actualIntakeTime    Int
+  actualIntakeDate    DateTime  @db.Timestamptz(6)
+  isCompleted         Boolean   @default(false)
+  isSkipped           Boolean   @default(false)
+  medicine            Medicine  @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([medicineId, userId, intakeTime, actualIntakeTime])
+  @@index([medicineId, userId, scheduledIntakeTime, actualIntakeTime])
   @@map("medicinerecords")
 }
 

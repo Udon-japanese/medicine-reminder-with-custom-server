@@ -49,7 +49,6 @@ export default function EditMedicineUnitModal({
   const isOnlyOneUnit = fields.length === 1;
 
   const onSubmit: SubmitHandler<MedicineUnitForm> = async ({ units: newMedUnits }) => {
-    console.log(newMedUnits)
     const medUnitsToDelete = medicineUnits.filter((unit) => {
       const u = unit.unit;
       return !newMedUnits.map((nU) => nU.unit).includes(u);

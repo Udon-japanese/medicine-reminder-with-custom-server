@@ -1,0 +1,7 @@
+{
+  "watch": ["src/server"],
+  "ignore": ["node_modules", ".next"],
+  "project": "tsconfig.server.json",
+  "exec": "ts-node src/server/index.ts",
+  "ext": "js ts"
+}

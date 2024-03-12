@@ -15,7 +15,7 @@ export function Popover({
   mobileOnly,
   isDrawerFullHeight = false,
   drawerClassName = '',
-  popoverClassName = ''
+  popoverClassName = '',
 }: {
   children: ReactNode;
   content: ReactNode | string;

@@ -11,7 +11,7 @@ type SignData = {
 export async function getImageUrlByIdClient(imageId: string | null | undefined) {
   if (!imageId) return null;
 
-  const signData = await fetcher<SignData>('/api/sign-cloudinary', { method: 'POST' });
+  const signData = await fetcher<SignData>('/api/signCloudinary', { method: 'POST' });
   const { cloudName } = signData;
 
   const imageUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${imageId}`;
@@ -22,7 +22,7 @@ export async function getImageUrlByIdClient(imageId: string | null | undefined) 
 }
 
 export async function uploadImage(file: File) {
-  const signData = await fetcher<SignData>('/api/sign-cloudinary', { method: 'POST' });
+  const signData = await fetcher<SignData>('/api/signCloudinary', { method: 'POST' });
   const { apiKey, timestamp, signature, folder, cloudName } = signData;
   const formData = new FormData();
 
@@ -65,7 +65,7 @@ export async function uploadImage(file: File) {
 }
 
 export async function deleteImageByIdClient(imageId: string) {
-  const signData = await fetcher<SignData>('/api/sign-cloudinary', { method: 'POST' });
+  const signData = await fetcher<SignData>('/api/signCloudinary', { method: 'POST' });
   const { apiKey, timestamp, signature, cloudName } = signData;
   const formData = new FormData();
 

@@ -17,6 +17,7 @@ type Props = {
   fullScreenOnMobile?: boolean;
   dialogClassName?: string;
   drawerClassName?: string;
+  disableStyles?: boolean;
 };
 
 export default function Modal({
@@ -29,6 +30,7 @@ export default function Modal({
   fullScreenOnMobile,
   dialogClassName = '',
   drawerClassName = '',
+  disableStyles = false,
 }: Props) {
   const { isMd } = useMediaQuery();
   const router = useRouter();
@@ -50,7 +52,7 @@ export default function Modal({
     }
   };
 
-  if ((isMd && !desktopOnly) || (!isMd && fullScreenOnMobile)) {
+  if ((!isMd && desktopOnly) || (!isMd && fullScreenOnMobile) || isMd) {
     return (
       <Dialog.Root
         open={setShowModal ? showModal : true}
@@ -65,7 +67,7 @@ export default function Modal({
             id="modal-backdrop"
             className={dialogStyles.overlay}
           />
-          <Dialog.Content className={`${dialogStyles.content} ${!isMd && fullScreenOnMobile ? dialogStyles.fullScreen : ''} ${dialogClassName}`}>
+          <Dialog.Content className={`${disableStyles ? '' : dialogStyles.content} ${!isMd && fullScreenOnMobile ? dialogStyles.fullScreen : ''} ${dialogClassName}`}>
             {children}
           </Dialog.Content>
         </Dialog.Portal>
@@ -84,9 +86,9 @@ export default function Modal({
     >
       <Drawer.Overlay className={drawerStyles.overlay} />
       <Drawer.Portal>
-        <Drawer.Content className={`${drawerStyles.content} ${drawerClassName}`}>
-          <div className={drawerStyles.body}>
-            <div className={drawerStyles.handle} />
+        <Drawer.Content className={`${disableStyles ? '' : drawerStyles.content} ${drawerClassName}`}>
+          <div className={disableStyles ? '' : drawerStyles.body}>
+            <div className={disableStyles ? '' : drawerStyles.handle} />
             {children}
           </div>
         </Drawer.Content>

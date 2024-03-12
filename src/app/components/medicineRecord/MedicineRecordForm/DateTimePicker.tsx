@@ -3,23 +3,23 @@ import {
   LocalizationProvider,
   DesktopDateTimePickerProps,
   DesktopDateTimePicker,
-  MobileDateTimePickerProps,
-  MobileDateTimePicker,
+  StaticDateTimePicker,
+  StaticDateTimePickerProps,
 } from '@mui/x-date-pickers';
 import { Dispatch, SetStateAction } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
 import useMediaQuery from '@/app/hooks/useMediaQuery';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { ja } from 'date-fns/locale/ja';
-import { format } from 'date-fns';
-import ButtonField from '@/app/components/DateTImePickerFIeld/ButtonField';
-import TextField from '@/app/components/DateTImePickerFIeld/TextField';
+import { format, getYear, isToday } from 'date-fns';
+import TextField from '@/app/components/DateTimePicker/TextField';
 import { isInvalidDate } from '@/utils/isInvalidDate';
-import styles from '@styles/components/dateTimePickerField.module.scss';
+import styles from '@styles/components/dateTimePicker.module.scss';
 import { MedicineRecordForm } from '@/types/zodSchemas/medicineRecord/schema';
+import Modal from '@/app/components/Modal';
+import ActionBar from '@/app/components/DateTimePicker/ActionBar';
 
-const timePickerProps = () => {
+const dateTimePickerProps = () => {
   return {
     localeText: {
       toolbarTitle: '日付を選択',
@@ -28,7 +28,7 @@ const timePickerProps = () => {
       cancelButtonLabel: 'キャンセル',
       okButtonLabel: 'OK',
     },
-    format: 'yyyy年M月d日',
+    format: 'yyyy年M月d日 H:m',
     ref: null,
   };
 };
@@ -47,6 +47,14 @@ export default function DateTimePicker({
   const { isMd } = useMediaQuery();
   const err = errors?.intakeDate?.message;
 
+  const getLabel = (date: Date | null) => {
+    if (date === null || isInvalidDate(date)) return null;
+    const isThisYear = getYear(new Date()) === getYear(date);
+    const dayFormatString = isToday(date) ? '今日' : isThisYear ? 'M月d日' : 'yyyy年M月d日';
+
+    return format(date, `${dayFormatString} H:mm`);
+  }
+
   return (
     <>
       <Controller
@@ -59,23 +67,18 @@ export default function DateTimePicker({
             dateFormats={{ year: 'yyyy年', monthAndYear: 'yyyy年M月' }}
           >
             {isMd ? (
-              <CustomDesktopDatePicker
+              <CustomDesktopDateTimePicker
                 open={open}
                 setOpen={setOpen}
                 {...fieldProps}
                 inputRef={ref}
               />
             ) : (
-              <CustomMobileDatePicker
+              <CustomMobileDateTimePicker
                 open={open}
                 setOpen={setOpen}
                 {...fieldProps}
-                label={
-                  fieldProps.value === null || isInvalidDate(fieldProps.value)
-                    ? null
-                    : format(fieldProps.value, 'yyyy年M月d日')
-                }
-                inputRef={ref}
+                label={getLabel(fieldProps.value)}
               />
             )}
           </LocalizationProvider>
@@ -86,7 +89,7 @@ export default function DateTimePicker({
   );
 }
 
-function CustomDesktopDatePicker(
+function CustomDesktopDateTimePicker(
   props: DesktopDateTimePickerProps<Date> & {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
@@ -118,36 +121,52 @@ function CustomDesktopDatePicker(
       }}
       orientation='landscape'
       {...other}
-      {...timePickerProps()}
+      {...dateTimePickerProps()}
     />
   );
 }
 
-function CustomMobileDatePicker(
-  props: Omit<MobileDateTimePickerProps<Date>, 'open' | 'onOpen' | 'onCLose'> & {
+function CustomMobileDateTimePicker(
+  props: StaticDateTimePickerProps<Date> & {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
+    label: string | null;
   },
 ) {
   const {
     formState: { errors },
-  } = useFormContext<MedicineForm>();
-  const err = errors?.period?.startDate?.message;
-  const { open, setOpen, ...other } = props;
+  } = useFormContext<MedicineRecordForm>();
+  const err = errors?.intakeDate?.message;
+  const { open, setOpen, label, ...other } = props;
 
   return (
-    <MobileDateTimePicker
-      slots={{ field: ButtonField, ...props.slots }}
-      slotProps={{
-        field: { setOpen, className: err ? styles.isInvalid : '' } as any,
-        toolbar: { toolbarFormat: 'M月d日' },
-        dialog: { disablePortal: true },
-      }}
-      open={open}
-      onClose={() => setOpen(false)}
-      onOpen={() => setOpen(true)}
-      {...other}
-      {...timePickerProps()}
-    />
+    <>
+      <Modal
+        showModal={open}
+        setShowModal={setOpen}
+        desktopOnly
+        dialogClassName={styles.mobileDateTimePickerDialog}
+      >
+        <StaticDateTimePicker
+          slots={{
+            actionBar: ActionBar,
+            ...props.slots
+          }}
+          slotProps={{
+            toolbar: { toolbarFormat: 'M月d日' },
+            actionBar: { setOpen } as any,
+          }}
+          {...other}
+          {...dateTimePickerProps()}
+        />
+      </Modal>
+      <button
+        type='button'
+        onClick={() => setOpen(true)}
+        className={`${err ? styles.isInvalid : ''} ${styles.field}`}
+      >
+        {label}
+      </button>
+    </>
   );
 }

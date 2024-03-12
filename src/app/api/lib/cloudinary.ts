@@ -8,7 +8,6 @@ cloudinary.config({
 });
 
 type Maybe<T> = T | null | undefined;
-
 export async function getImageUrlByIdServer(
   imageId: Maybe<string>,
 ): Promise<string | null> {

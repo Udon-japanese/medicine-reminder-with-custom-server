@@ -25,3 +25,17 @@
   color: $red-400;
   margin-top: size(1);
 }
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-right: size(1);
+  margin-bottom: size(1);
+}
+
+.mobile-date-time-picker-dialog {
+  max-height: 100vh !important;
+  min-height: fit-content;
+  min-width: fit-content;
+}

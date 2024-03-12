@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { MedicineRecord, Prisma } from "@prisma/client";
 
 export type MedicineWithRelations = Prisma.MedicineGetPayload<{
   include: {
@@ -35,3 +35,6 @@ export type MedicineWithRelationsAndImageUrl = Prisma.MedicineGetPayload<{
     medicineId: string;
   } | null;
 };
+
+export type MedicineWithDosage = { dosage: number; medicine: MedicineWithRelations };
+export type MedicineWithDosageAndRecord = MedicineWithDosage & { record: MedicineRecord };

@@ -2,7 +2,7 @@ import getCurrentUser from '@/app/actions/getCurrentUser';
 import getMedicineUnits from '@/app/actions/getMedicineUnits';
 import { prisma } from '@/lib/prismadb';
 import { medicineUnitFormSchema } from '@/types/zodSchemas/medicineForm/schema';
-import { MedicineUnit } from '@prisma/client';
+import { MedicineUnit, Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       (unit) => !uniqueCurrentUnits.includes(unit.unit),
     );
 
-    const data = newUnits.map((unit) => ({
+    const data = newUnits.map((unit): Prisma.MedicineUnitCreateManyInput => ({
       unit: unit.unit,
       userId: currentUser.id,
     }));

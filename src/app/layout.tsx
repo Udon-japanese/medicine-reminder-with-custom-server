@@ -3,10 +3,16 @@ import { Noto_Sans_JP } from 'next/font/google';
 import AuthContext from './contexts/AuthContext';
 import { StyledEngineProvider } from '@mui/material/styles';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v13-appRouter';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import '@unocss/reset/tailwind.css';
 import '@styles/global.scss';
 
-const notojp = Noto_Sans_JP({ subsets: ['latin'], display: 'swap', weight: ['400', '500'] });
+const notojp = Noto_Sans_JP({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500'],
+});
 
 export const metadata: Metadata = {
   title: 'お薬リマインダー',
@@ -20,6 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={notojp.className}>
         <AppRouterCacheProvider options={{ key: 'css' }}>
           <StyledEngineProvider injectFirst>
+            <ToastContainer />
             <AuthContext>{children}</AuthContext>
           </StyledEngineProvider>
         </AppRouterCacheProvider>

@@ -27,23 +27,23 @@ export async function DELETE(req: Request, { params }: Params) {
       },
     });
 
+    if (!existingMedicine) {
+      return new NextResponse('Invalid Medicine ID', { status: 400 });
+    }
+
     const imageId = existingMedicine?.memo?.imageId;
     const imageUrl = await getImageUrlByIdServer(imageId);
     if (imageUrl) {
       await deleteImageByIdServer(imageId);
     }
 
-    if (!existingMedicine) {
-      return new NextResponse('Invalid Medicine ID', { status: 400 });
-    }
-
-    const deletedConversation = await prisma.medicine.deleteMany({
+    const deletedMedicine = await prisma.medicine.delete({
       where: {
         id: medicineId,
       },
     });
 
-    return NextResponse.json(deletedConversation);
+    return NextResponse.json(deletedMedicine);
   } catch (err) {
     console.error(err);
     return new NextResponse('Internal Server Error: Failed to process the request', {

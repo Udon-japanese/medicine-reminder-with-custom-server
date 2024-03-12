@@ -1,7 +1,6 @@
 'use client';
 import { MedicineWithRelationsAndImageUrl } from '@/types';
 import { FrequencyType } from '@prisma/client';
-import Link from 'next/link';
 import styles from '@styles/components/medicines/medicineItem/index.module.scss';
 import {
   addDays,

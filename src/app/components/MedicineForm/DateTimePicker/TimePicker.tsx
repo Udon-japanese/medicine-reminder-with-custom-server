@@ -5,20 +5,22 @@ import {
   DesktopTimePicker,
   DesktopTimePickerProps,
   LocalizationProvider,
-  MobileTimePicker,
-  MobileTimePickerProps,
+  StaticTimePicker,
+  StaticTimePickerProps,
 } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
-import { useState } from 'react';
+import { Dispatch, SetStateAction, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
-import TextField from '../../DateTImePickerFIeld/TextField';
-import ButtonField from '../../DateTImePickerFIeld/ButtonField';
+import TextField from '../../DateTimePicker/TextField';
 import { isInvalidDate } from '@/utils/isInvalidDate';
-import styles from '@/styles/components/dateTimePickerField.module.scss';
+import styles from '@/styles/components/dateTimePicker.module.scss';
+import Modal from '../../Modal';
+import ActionBar from '../../DateTimePicker/ActionBar';
 
 export default function TimePicker({ index }: { index: number }) {
+  const [open, setOpen] = useState(false);
   const {
     control,
     formState: { errors },
@@ -34,9 +36,17 @@ export default function TimePicker({ index }: { index: number }) {
         render={({ field: { ref, ...fieldProps } }) => (
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
             {isMd ? (
-              <CustomDesktopTimePicker index={index} {...fieldProps} inputRef={ref} />
+              <CustomDesktopTimePicker
+                index={index}
+                open={open}
+                setOpen={setOpen}
+                {...fieldProps}
+                inputRef={ref}
+              />
             ) : (
               <CustomMobileTimePicker
+                open={open}
+                setOpen={setOpen}
                 index={index}
                 {...fieldProps}
                 label={
@@ -44,7 +54,6 @@ export default function TimePicker({ index }: { index: number }) {
                     ? null
                     : format(fieldProps.value, 'HH:mm')
                 }
-                inputRef={ref}
               />
             )}
           </LocalizationProvider>
@@ -55,16 +64,22 @@ export default function TimePicker({ index }: { index: number }) {
   );
 }
 
-function CustomDesktopTimePicker(
-  props: DesktopTimePickerProps<Date> & { index: number },
-) {
-  const [open, setOpen] = useState(false);
+function CustomDesktopTimePicker({
+  open,
+  setOpen,
+  index,
+  slots,
+  ...other
+}: Omit<DesktopTimePickerProps<Date>, 'open' | 'onOpen' | 'onClose'> & {
+  index: number;
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+}) {
   const {
     trigger,
     formState: { errors },
   } = useFormContext<MedicineForm>();
-  const err = errors?.intakeTimes?.[props.index]?.time?.message;
-
+  const err = errors?.intakeTimes?.[index]?.time?.message;
   return (
     <DesktopTimePicker
       open={open}
@@ -73,7 +88,7 @@ function CustomDesktopTimePicker(
         setOpen(false);
         trigger('intakeTimes');
       }}
-      slots={{ textField: TextField, ...props.slots }}
+      slots={{ textField: TextField, ...slots }}
       slotProps={{
         textField: {
           onClick: () => setOpen(true),
@@ -81,42 +96,65 @@ function CustomDesktopTimePicker(
           className: err ? styles.isInvalid : styles.isValid,
         },
       }}
-      {...props}
+      {...other}
     />
   );
 }
 
 function CustomMobileTimePicker(
-  props: Omit<MobileTimePickerProps<Date>, 'open' | 'onOpen' | 'onCLose'> & {
+  props: StaticTimePickerProps<Date> & {
+    open: boolean;
+    setOpen: Dispatch<SetStateAction<boolean>>;
+    label: string | null;
     index: number;
   },
 ) {
-  const [open, setOpen] = useState(false);
   const {
     trigger,
     formState: { errors },
   } = useFormContext<MedicineForm>();
   const err = errors?.intakeTimes?.[props.index]?.time?.message;
+  const { open, setOpen, label, ...other } = props;
 
   return (
-    <MobileTimePicker
-      ref={null}
-      localeText={{
-        toolbarTitle: '時間を選択',
-        cancelButtonLabel: 'キャンセル',
-        okButtonLabel: 'OK',
-      }}
-      slots={{ field: ButtonField, ...props.slots }}
-      slotProps={{
-        field: { setOpen, className: err ? styles.isInvalid : '' } as any,
-      }}
-      {...props}
-      open={open}
-      onClose={() => {
-        setOpen(false);
-        trigger('intakeTimes');
-      }}
-      onOpen={() => setOpen(true)}
-    />
+    <>
+      <Modal
+        showModal={open}
+        setShowModal={setOpen}
+        desktopOnly
+        dialogClassName={styles.mobileDateTimePickerDialog}
+      >
+        <StaticTimePicker
+          ref={null}
+          localeText={{
+            toolbarTitle: '時間を選択',
+            cancelButtonLabel: 'キャンセル',
+            okButtonLabel: 'OK',
+          }}
+          slots={{
+            actionBar: ActionBar,
+            ...props.slots,
+          }}
+          slotProps={{
+            toolbar: { toolbarFormat: 'yyyy年M月d日' },
+            actionBar: {
+              setOpen,
+              onClose: () => {
+                trigger('intakeTimes');
+              },
+            } as any,
+          }}
+          minutesStep={1}
+          {...other}
+        />
+      </Modal>
+      <button
+        type='button'
+        onClick={() => setOpen(true)}
+        className={`${err ? styles.isInvalid : ''} ${styles.field}`}
+      >
+        {label}
+      </button>
+    </>
   );
 }

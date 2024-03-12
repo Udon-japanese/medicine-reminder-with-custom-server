@@ -1,4 +1,4 @@
-import styles from '@styles/components/dateTimePickerField.module.scss';
+import styles from '@styles/components/dateTimePicker.module.scss';
 import { TextFieldProps as MUITextFieldProps, useForkRef } from '@mui/material';
 
 type TextFieldProps = MUITextFieldProps & {

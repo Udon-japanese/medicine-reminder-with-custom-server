@@ -1,10 +1,14 @@
+import getExistingMedicinesWithRecords from '@/utils/getExistingMedicinesWithRecords';
 import Sidebar from '../components/sidebar/Sidebar';
+import Calendar from './components/Calendar';
 
-export default function Page() {
+export default async function Page() {
+  const { medicines, medicineRecords } = await getExistingMedicinesWithRecords();
+
   return (
     <>
       <Sidebar>
-        <div>カレンダー</div>
+        <Calendar medicines={medicines} medicineRecords={medicineRecords} />
       </Sidebar>
     </>
   );
