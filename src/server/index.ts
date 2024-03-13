@@ -93,6 +93,8 @@ cloudinary.config({
         userMedicines.get(userId)?.push({ imageUrl, name: medicineName });
       }
 
+      console.log('userMedicines', userMedicines)
+
       for (const [userId, medicines] of userMedicines) {
         const pushSubscriptions = await prisma.pushSubscription.findMany({
           where: {
@@ -116,7 +118,7 @@ cloudinary.config({
             image: medicines.find((m) => m.imageUrl)?.imageUrl,
           });
 
-          webPush.sendNotification(pushSubscription, payload);
+          await webPush.sendNotification(pushSubscription, payload);
         }
       }
     });
