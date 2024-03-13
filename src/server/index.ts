@@ -101,6 +101,9 @@ cloudinary.config({
             userId,
           },
         });
+        console.log('pushSubscriptions', pushSubscriptions);
+        console.log('medicines', medicines);
+        console.log('userId', userId);
         const formattedCurrentDate = format(currentDate, 'M月dd日 H:mm');
         if (!pushSubscriptions || pushSubscriptions.length === 0) continue;
 
