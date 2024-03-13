@@ -125,8 +125,9 @@ cloudinary.config({
       return handle(req, res);
     });
 
-    server.listen(3000, () => {
-      console.info('Listening to http://localhost:3000');
+    const port = process.env.PORT || 3000;
+    server.listen(port, () => {
+      console.info(`Listening on port ${port}`);
     });
   } catch (err) {
     console.error(err);
