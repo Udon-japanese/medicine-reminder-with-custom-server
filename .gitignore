@@ -37,4 +37,4 @@ yarn-error.log*
 next-env.d.ts
 
 # typed-scss-modules
-*.module.scss.d.ts
+*.scss.d.ts
