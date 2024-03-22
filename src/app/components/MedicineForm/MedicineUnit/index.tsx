@@ -1,7 +1,7 @@
 'use client';
 import { Popover } from '@/app/components/Popover';
 import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
-import { MedicineUnit, MedicineUnit as TMedicineUnit } from '@prisma/client';
+import { MedicineUnit as TMedicineUnit } from '@prisma/client';
 import { useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import SelectMedicineUnitButton from './SelectMedicineUnitButton';

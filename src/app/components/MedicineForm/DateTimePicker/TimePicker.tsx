@@ -1,9 +1,8 @@
 'use client';
 import useMediaQuery from '@/app/hooks/useMediaQuery';
-import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
 import {
-  DesktopTimePicker,
-  DesktopTimePickerProps,
+  DesktopTimePicker as MUIDesktopTimePicker,
+  DesktopTimePickerProps as MUIDesktopTimePickerProps,
   LocalizationProvider,
   StaticTimePicker,
   StaticTimePickerProps,
@@ -12,42 +11,45 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 import { Dispatch, SetStateAction, useState } from 'react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, FieldValues, Path, useFormContext } from 'react-hook-form';
 import TextField from '../../DateTimePicker/TextField';
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import styles from '@/styles/components/dateTimePicker.module.scss';
 import Modal from '../../Modal';
 import ActionBar from '../../DateTimePicker/ActionBar';
 
-export default function TimePicker({ index }: { index: number }) {
+type TimePickerProps<T> = { name: Path<T>; triggerName: Path<T>, error: string | undefined };
+export default function TimePicker<T extends FieldValues>({
+  name,
+  triggerName,
+  error,
+}: TimePickerProps<T>) {
   const [open, setOpen] = useState(false);
-  const {
-    control,
-    formState: { errors },
-  } = useFormContext<MedicineForm>();
+  const { control } = useFormContext<T>();
   const { isMd } = useMediaQuery();
-  const err = errors?.intakeTimes?.[index]?.time?.message;
 
   return (
     <>
       <Controller
-        name={`intakeTimes.${index}.time` as const}
+        name={name}
         control={control}
         render={({ field: { ref, ...fieldProps } }) => (
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
             {isMd ? (
-              <CustomDesktopTimePicker
-                index={index}
+              <DesktopTimePicker<T>
                 open={open}
                 setOpen={setOpen}
+                triggerName={triggerName}
+                error={error}
                 {...fieldProps}
                 inputRef={ref}
               />
             ) : (
-              <CustomMobileTimePicker
+              <MobileTimePicker<T>
                 open={open}
                 setOpen={setOpen}
-                index={index}
+                triggerName={triggerName}
+                error={error}
                 {...fieldProps}
                 label={
                   isInvalidDate(fieldProps.value)
@@ -59,41 +61,42 @@ export default function TimePicker({ index }: { index: number }) {
           </LocalizationProvider>
         )}
       />
-      {err && <div className={styles.errMessage}>{err}</div>}
+      {error && <div className={styles.errMessage}>{error}</div>}
     </>
   );
 }
 
-function CustomDesktopTimePicker({
-  open,
-  setOpen,
-  index,
-  slots,
-  ...other
-}: Omit<DesktopTimePickerProps<Date>, 'open' | 'onOpen' | 'onClose'> & {
-  index: number;
+interface DesktopTimePickerProps<T>
+  extends Omit<MUIDesktopTimePickerProps<Date>, 'open' | 'onOpen' | 'onClose' | 'name'> {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-}) {
-  const {
-    trigger,
-    formState: { errors },
-  } = useFormContext<MedicineForm>();
-  const err = errors?.intakeTimes?.[index]?.time?.message;
+  triggerName: Path<T>;
+  error: string | undefined;
+}
+function DesktopTimePicker<T extends FieldValues>({
+  open,
+  setOpen,
+  slots,
+  triggerName,
+  error,
+  ...other
+}: DesktopTimePickerProps<T>) {
+  const { trigger } = useFormContext<T>();
+
   return (
-    <DesktopTimePicker
+    <MUIDesktopTimePicker
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => {
         setOpen(false);
-        trigger('intakeTimes');
+        trigger(triggerName);
       }}
       slots={{ textField: TextField, ...slots }}
       slotProps={{
         textField: {
           onClick: () => setOpen(true),
-          onBlur: () => trigger('intakeTimes'),
-          className: err ? styles.isInvalid : styles.isValid,
+          onBlur: () => trigger(triggerName),
+          className: error ? styles.isInvalid : styles.isValid,
         },
       }}
       {...other}
@@ -101,20 +104,23 @@ function CustomDesktopTimePicker({
   );
 }
 
-function CustomMobileTimePicker(
-  props: StaticTimePickerProps<Date> & {
-    open: boolean;
-    setOpen: Dispatch<SetStateAction<boolean>>;
-    label: string | null;
-    index: number;
-  },
-) {
-  const {
-    trigger,
-    formState: { errors },
-  } = useFormContext<MedicineForm>();
-  const err = errors?.intakeTimes?.[props.index]?.time?.message;
-  const { open, setOpen, label, ...other } = props;
+interface MobileTimePickerProps<T> extends Omit<StaticTimePickerProps<Date>, 'name'> {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  label: string | null;
+  triggerName: Path<T>;
+  error: string | undefined;
+}
+function MobileTimePicker<T extends FieldValues>({
+  open,
+  setOpen,
+  label,
+  triggerName,
+  slots,
+  error,
+  ...other
+}: MobileTimePickerProps<T>) {
+  const { trigger } = useFormContext<T>();
 
   return (
     <>
@@ -133,15 +139,16 @@ function CustomMobileTimePicker(
           }}
           slots={{
             actionBar: ActionBar,
-            ...props.slots,
+            ...slots,
           }}
           slotProps={{
             toolbar: { toolbarFormat: 'yyyy年M月d日' },
             actionBar: {
               setOpen,
               onClose: () => {
-                trigger('intakeTimes');
+                trigger(triggerName);
               },
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any,
           }}
           minutesStep={1}
@@ -151,7 +158,7 @@ function CustomMobileTimePicker(
       <button
         type='button'
         onClick={() => setOpen(true)}
-        className={`${err ? styles.isInvalid : ''} ${styles.field}`}
+        className={`${error ? styles.isInvalid : ''} ${styles.field}`}
       >
         {label}
       </button>

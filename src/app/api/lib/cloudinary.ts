@@ -11,7 +11,7 @@ type Maybe<T> = T | null | undefined;
 export async function getImageUrlByIdServer(
   imageId: Maybe<string>,
 ): Promise<string | null> {
-  if (!imageId) return null;
+  if (!imageId || typeof imageId !== 'string') return null;
   const image = await cloudinary.api.resource(imageId);
   return image.secure_url;
 }

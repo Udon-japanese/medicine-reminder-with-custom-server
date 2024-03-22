@@ -1,6 +1,5 @@
 import { usePathname } from 'next/navigation';
 import React, { useMemo } from 'react';
-import { useSession } from 'next-auth/react';
 import globalStyles from '@styles/styles.module.scss';
 import Avatar from '../components/Avatar';
 import {
@@ -12,6 +11,7 @@ import {
   MedicationOutlined,
   SvgIconComponent,
 } from '@mui/icons-material';
+import { User } from '@prisma/client';
 
 export type Route = {
   label: string;
@@ -21,10 +21,8 @@ export type Route = {
   active: boolean;
 };
 
-export default function useRoutes() {
+export default function useRoutes(user: User) {
   const pathname = usePathname();
-  const { data: session } = useSession();
-  const user = session?.user;
   const username = user?.name;
   const iconSrc = user?.image;
   const routes = useMemo<Route[]>(

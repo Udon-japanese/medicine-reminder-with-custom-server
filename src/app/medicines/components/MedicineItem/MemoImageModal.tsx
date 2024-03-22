@@ -30,7 +30,16 @@ export default function MemoImageModal({
         <CloseRounded />
       </button>
       {memo?.imageUrl && (
-        <TransformWrapper>
+        <TransformWrapper
+          initialScale={1}
+          centerZoomedOut={true}
+          disablePadding={true}
+          minScale={0.5}
+          maxScale={7}
+          wheel={{
+            step: 200,
+          }}
+        >
           <TransformComponent>
             <Image
               src={memo.imageUrl}
@@ -39,6 +48,7 @@ export default function MemoImageModal({
               height={500}
               sizes='100vw'
               className={styles.image}
+              priority
             />
           </TransformComponent>
         </TransformWrapper>

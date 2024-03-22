@@ -9,7 +9,7 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
-    "**/*.module.scss.d.ts": true
+    "**/*.scss.d.ts": true
   },
   "reactSnippets.settings.prettierEnabled": false
 }

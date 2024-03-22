@@ -26,7 +26,7 @@ export function getFrequencyText(
     case 'SPECIFIC_DAYS_OF_WEEK': {
       const specificDaysOfWeek = options?.specificDaysOfWeek;
 
-      const isDayOfWeekArray = (array: any): array is DayOfWeek[] => {
+      const isDayOfWeekArray = (array: unknown): array is DayOfWeek[] => {
         return (
           Array.isArray(array) &&
           array.every((item) => Object.values(DayOfWeek).includes(item))
@@ -52,7 +52,7 @@ export function getFrequencyText(
       const defaultText = '月の特定日';
       const specificDaysOfMonth = options?.specificDaysOfMonth;
 
-      const isNumberArray = (array: any): array is number[] => {
+      const isNumberArray = (array: unknown): array is number[] => {
         return Array.isArray(array) && array.every((item) => typeof item === 'number');
       };
 

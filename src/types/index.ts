@@ -1,10 +1,15 @@
-import { MedicineRecord, Prisma } from "@prisma/client";
+import { MedicineRecord, Prisma } from '@prisma/client';
 
 export type MedicineWithRelations = Prisma.MedicineGetPayload<{
   include: {
     intakeTimes: true;
     frequency: {
       include: {
+        everyday: {
+          include: {
+            weekendIntakeTimes: true;
+          };
+        };
         oddEvenDay: true;
         onOffDays: true;
       };
@@ -20,6 +25,11 @@ export type MedicineWithRelationsAndImageUrl = Prisma.MedicineGetPayload<{
     intakeTimes: true;
     frequency: {
       include: {
+        everyday: {
+          include: {
+            weekendIntakeTimes: true;
+          };
+        }
         oddEvenDay: true;
         onOffDays: true;
       };

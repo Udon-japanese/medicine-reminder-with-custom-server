@@ -1,0 +1,100 @@
+@use '../button' as *;
+
+.container {
+  margin: 0 size(2);
+  padding-bottom: size(15);
+  position: relative;
+}
+
+.is-today-page-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.header-container {
+  @include text-base;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0 size(1);
+  margin-top: size(2);
+}
+
+.done-text-container {
+  @include text-sm;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: size(1);
+  margin-top: size(2);
+}
+
+.completed-or-skipped-times-container {
+  margin-top: size(10);
+}
+
+.medicines-status {
+  width: size(3);
+  height: size(3);
+  border-radius: 9999px;
+}
+
+.no-completed {
+  background-color: $red-400;
+}
+
+.some-completed {
+  background-color: $yellow-400;
+}
+
+.all-completed {
+  background-color: $green-400;
+}
+
+.future {
+  background-color: $gray-300;
+}
+
+.new-record-button {
+  @include button($blue-500);
+  @include text-3xl;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: size(12);
+  height: size(12);
+  color: $white;
+  position: fixed;
+  bottom: size(16);
+  right: size(5);
+  z-index: 1;
+
+  @include mq() {
+    display: none;
+  }
+}
+
+.empty-image {
+  width: size(70);
+  height: auto;
+}
+
+.empty-container {
+  @include text-sm;
+  color: $gray-500;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: size(5);
+}
+
+.is-calendar-page-empty-container {
+  position: absolute;
+  top: calc(100vh / 6);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: auto;
+}

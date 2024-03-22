@@ -27,6 +27,7 @@ import { useState } from 'react';
 import Memo from './Memo';
 import MemoImageModal from './MemoImageModal';
 import { useRouter } from 'next/navigation';
+import { getCurrentDateIntakeTimes } from '@/utils/getCurrentDateIntakeTimes';
 
 export default function MedicineItem({
   medicine,
@@ -37,6 +38,7 @@ export default function MedicineItem({
   const [showMemoImageModal, setShowMemoImageModal] = useState(false);
   const { name, memo, stock, frequency, period, notify, isPaused } = medicine;
   const intakeTimes = medicine.intakeTimes.sort((a, b) => a.time - b.time);
+  const stockText = getStockOutDate();
 
   const getFrequencyOptions = (
     freqType: FrequencyType,
@@ -46,17 +48,17 @@ export default function MedicineItem({
       case 'EVERYDAY':
         return {};
       case 'EVERY_X_DAY':
-        return { everyXDay: med.frequency?.everyXDay! };
+        return { everyXDay: med.frequency!.everyXDay! };
       case 'SPECIFIC_DAYS_OF_WEEK':
-        return { specificDaysOfWeek: med.frequency?.specificDaysOfWeek! };
+        return { specificDaysOfWeek: med.frequency!.specificDaysOfWeek };
       case 'SPECIFIC_DAYS_OF_MONTH':
-        return { specificDaysOfMonth: med.frequency?.specificDaysOfMonth! };
+        return { specificDaysOfMonth: med.frequency!.specificDaysOfMonth };
       case 'ODD_EVEN_DAY':
-        return { isOddDay: med.frequency?.oddEvenDay?.isOddDay! };
+        return { isOddDay: med.frequency!.oddEvenDay!.isOddDay };
       case 'ON_OFF_DAYS':
         return {
-          onDays: med.frequency?.onOffDays?.onDays!,
-          offDays: med.frequency?.onOffDays?.offDays!,
+          onDays: med.frequency!.onOffDays!.onDays,
+          offDays: med.frequency!.onOffDays!.offDays,
         };
       default:
         throw new Error(
@@ -64,23 +66,14 @@ export default function MedicineItem({
         );
     }
   };
-  const getStockOutDate = ({
-    period,
-    intakeTimes,
-    stock,
-    frequency,
-  }: {
-    period: MedicineWithRelationsAndImageUrl['period'];
-    intakeTimes: MedicineWithRelationsAndImageUrl['intakeTimes'];
-    stock: MedicineWithRelationsAndImageUrl['stock'];
-    frequency: MedicineWithRelationsAndImageUrl['frequency'];
-  }) => {
-    if (!(period && intakeTimes.length > 0 && stock?.quantity && frequency)) {
+  function getStockOutDate() {
+    const now = new Date();
+    const today = startOfDay(new Date());
+    const currentDateIntakeTimes = getCurrentDateIntakeTimes({medicine, currentDate: today});
+    if (!(period && currentDateIntakeTimes?.length > 0 && stock?.quantity && frequency)) {
       return '';
     }
 
-    const now = new Date();
-    const today = startOfDay(new Date());
     const startDate = startOfDay(period.startDate);
     const days = period.days || 0;
 
@@ -114,8 +107,9 @@ export default function MedicineItem({
         case 'ON_OFF_DAYS': {
           const daysFromStart = differenceInCalendarDays(currentDateFromToday, startDate);
           const remainder =
-            daysFromStart % (frequency.onOffDays!.onDays + frequency.onOffDays!.offDays);
-          return remainder < frequency.onOffDays!.onDays ? dailyDosage : 0;
+            daysFromStart %
+            (frequency!.onOffDays!.onDays + frequency!.onOffDays!.offDays);
+          return remainder < frequency!.onOffDays!.onDays ? dailyDosage : 0;
         }
       }
     };
@@ -128,7 +122,7 @@ export default function MedicineItem({
     let remainingStock = stock.quantity;
 
     while (remainingStock > 0) {
-      const dailyDosage = intakeTimes
+      const dailyDosage = currentDateIntakeTimes
         .filter((intake) => addMinutes(currentDateFromToday, intake.time) > now)
         .reduce((total, intake) => total + intake.dosage, 0);
 
@@ -151,13 +145,6 @@ export default function MedicineItem({
       }
     }
   };
-
-  const stockText = getStockOutDate({
-    period,
-    intakeTimes,
-    stock,
-    frequency,
-  });
 
   return (
     <>
@@ -192,8 +179,8 @@ export default function MedicineItem({
                     <div className={styles.infoLabel}>頻度</div>
                     <div className={styles.frequency}>
                       {getFrequencyText(
-                        frequency?.type!,
-                        getFrequencyOptions(frequency?.type!, medicine),
+                        frequency!.type,
+                        getFrequencyOptions(frequency!.type, medicine),
                       )}
                     </div>
                   </div>
@@ -248,7 +235,11 @@ function NotifyIcon({ notify }: { notify: boolean }) {
     <div
       className={`${styles.notifyWrapper} ${notify ? styles.isNotify : styles.isNotNotify}`}
     >
-      {notify ? <Notifications /> : <NotificationsOff />}
+      {notify ? (
+        <Notifications fontSize='inherit' />
+      ) : (
+        <NotificationsOff fontSize='inherit' />
+      )}
     </div>
   );
 }

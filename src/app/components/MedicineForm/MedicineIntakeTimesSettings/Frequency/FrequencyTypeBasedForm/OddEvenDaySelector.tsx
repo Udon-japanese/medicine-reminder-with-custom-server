@@ -8,6 +8,7 @@ export default function OddEvenDaySelector() {
   const { control, trigger } = useFormContext<MedicineForm>();
   const err = useErrorMessage<MedicineForm>('frequency.isOddDay');
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleClick = (isOddDay: boolean, onChange: (...event: any[]) => void) => {
     onChange(isOddDay);
     trigger('frequency.isOddDay');

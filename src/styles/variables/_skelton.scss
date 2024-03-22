@@ -1,0 +1,31 @@
+@use '../variables/palettes' as *;
+
+@mixin skeleton($width: 100%, $height: 100%, $color: $skeleton-2) {
+  width: $width;
+  height: $height;
+  background: $color;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, rgba($gray-200, 0.6), transparent);
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: skeleton-animation 1.1s infinite;
+  }
+}
+
+@keyframes skeleton-animation {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}

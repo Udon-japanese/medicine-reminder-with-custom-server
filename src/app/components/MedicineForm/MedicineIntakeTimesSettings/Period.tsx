@@ -7,7 +7,7 @@ import SwitchButton from '@/app/components/SwitchButton';
 import NumberInput from '@/app/components/NumberInput';
 import { formatPeriod } from '@/utils/formatPeriod';
 import styles from '@/styles/components/medicineForm/medicineIntakeTimesSettings/period.module.scss';
-import inputWithLabelStyles from '@styles/components/medicineForm/input-with-label.module.scss';
+import inputWithLabelStyles from '@styles/components/inputWithLabel.module.scss';
 import useErrorMessage from '@/app/hooks/useErrorMessage';
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import { addDays, format } from 'date-fns';
@@ -73,7 +73,7 @@ export default function Period() {
                   {isValidStartDate && isValidDays && (
                     <div className={inputWithLabelStyles.label}>
                       {format(
-                        addDays(period.startDate, Number(period?.days!)),
+                        addDays(period.startDate, Number(period?.days)),
                         '~ yyyy/M/d',
                       )}
                     </div>

@@ -95,26 +95,26 @@ model MedicineRecord {
 }
 
 model Medicine {
-  id              String               @id @db.Uuid
-  name            String               @db.VarChar(30)
-  intakeTimes     MedicineIntakeTime[]
+  id              String           @id @db.Uuid
+  name            String           @db.VarChar(30)
+  intakeTimes     IntakeTime[]
   frequency       Frequency?
   period          Period?
   notify          Boolean?
-  unit            String               @db.VarChar(10)
+  unit            String           @db.VarChar(10)
   stock           Stock?
   memo            Memo?
-  updatedAt       DateTime             @default(now()) @db.Timestamptz(6)
-  isPaused        Boolean              @default(false)
+  updatedAt       DateTime         @default(now()) @db.Timestamptz(6)
+  isPaused        Boolean          @default(false)
   userId          String
-  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   medicineRecords MedicineRecord[]
 
   @@index([userId])
   @@map("medicines")
 }
 
-model MedicineIntakeTime {
+model IntakeTime {
   id         Int      @id @default(autoincrement())
   time       Int
   dosage     Float
@@ -122,7 +122,7 @@ model MedicineIntakeTime {
   medicineId String   @db.Uuid
 
   @@index([medicineId])
-  @@map("medicineintaketimes")
+  @@map("intaketimes")
 }
 
 model Stock {
@@ -139,6 +139,7 @@ model Stock {
 model Frequency {
   id                  Int           @id @default(autoincrement())
   type                FrequencyType
+  everyday            Everyday?
   everyXDay           Int?
   specificDaysOfWeek  DayOfWeek[]
   specificDaysOfMonth Int[]
@@ -170,6 +171,27 @@ model Memo {
   medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
 
   @@map("memos")
+}
+
+model Everyday {
+  id                 Int                 @id @default(autoincrement())
+  frequencyId        Int                 @unique
+  frequency          Frequency           @relation(fields: [frequencyId], references: [id], onDelete: Cascade)
+  weekendIntakeTimes WeekendIntakeTime[]
+  weekends           DayOfWeek[] //ユーザが週末として選択した曜日が入っている
+
+  @@map("everydays")
+}
+
+model WeekendIntakeTime {
+  id         Int      @id @default(autoincrement())
+  everydayId Int
+  everyday   Everyday @relation(fields: [everydayId], references: [id], onDelete: Cascade)
+  time       Int
+  dosage     Float
+
+  @@index([everydayId])
+  @@map("weekendintaketimes")
 }
 
 model OddEvenDay {

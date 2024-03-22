@@ -1,26 +1,17 @@
 import express from 'express';
 import next from 'next';
 import schedule from 'node-schedule';
-import { PrismaClient } from '@prisma/client';
-import webPush from 'web-push';
+import { webPush } from '@/lib/webPush';
+import { prisma } from '@/lib/prismadb';
 import { getHours, getMinutes, format } from 'date-fns';
-import { v2 as cloudinary } from 'cloudinary';
+import { isIntakeDate } from '@/utils/isIntakeDate';
+import { getImageUrlByIdServer } from '@/app/api/lib/cloudinary';
+import { getCurrentDateIntakeTimes } from '@/utils/getCurrentDateIntakeTimes';
+import { DayOfWeek } from '@prisma/client';
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
-const prisma = new PrismaClient({ log: ['query'] });
-webPush.setVapidDetails(
-  'mailto:hoge@hoge.hoge',
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC!,
-  process.env.VAPID_PRIVATE!,
-);
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!,
-  api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!,
-  api_secret: process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET!,
-  secure: true,
-});
 
 (async () => {
   try {
@@ -44,7 +35,8 @@ cloudinary.config({
       const completedOrSkippedMedicineIds = completedOrSkippedMedicineRecords.map(
         (m) => m.medicineId,
       );
-      const currentMedicines = await prisma.medicine.findMany({
+
+      const meds = await prisma.medicine.findMany({
         where: {
           NOT: {
             id: {
@@ -52,17 +44,104 @@ cloudinary.config({
             },
           },
           notify: true,
-          intakeTimes: {
-            some: {
-              time: currentTimeInMinutes,
+          OR: [
+            {
+              intakeTimes: {
+                some: {
+                  time: currentTimeInMinutes,
+                },
+              },
             },
-          },
+            {
+              frequency: {
+                everyday: {
+                  weekendIntakeTimes: {
+                    some: {
+                      time: currentTimeInMinutes,
+                    },
+                  },
+                },
+              },
+            },
+          ],
         },
         include: {
           intakeTimes: true,
+          frequency: {
+            include: {
+              everyday: {
+                include: {
+                  weekendIntakeTimes: true,
+                },
+              },
+              oddEvenDay: true,
+              onOffDays: true,
+            },
+          },
+          period: true,
           memo: true,
+          stock: true,
         },
       });
+
+      const currentMedicines = meds.filter((m) => {
+        const { frequency, period } = m;
+        if (!(frequency && period?.startDate)) return false;
+
+        if (frequency.type === 'EVERYDAY' && frequency.everyday?.weekends?.length && frequency.everyday?.weekendIntakeTimes?.length) {
+          const { weekends, weekendIntakeTimes } = frequency.everyday;
+          const dayOfWeek = format(currentDate, 'EEEE').toUpperCase() as DayOfWeek;
+
+          if (weekends.includes(dayOfWeek)) {
+            if (weekendIntakeTimes.some((t) => t.time === currentTimeInMinutes)) {
+              return true;
+            } else {
+              return false;
+            }
+          } else {
+            return false;
+          }
+        }
+
+        return isIntakeDate({ frequency, currentDate, startDate: period?.startDate });
+      });
+
+      const medicinesToUpdate = currentMedicines
+        .map((m) => {
+          const stockQuantity = m.stock?.quantity;
+          const dosage = getCurrentDateIntakeTimes({ medicine: m, currentDate })?.find(
+            (i) => i.time === currentTimeInMinutes,
+          )?.dosage;
+          return {
+            ...m,
+            stockQuantity: stockQuantity ? stockQuantity : NaN,
+            dosage: dosage ? dosage : NaN,
+          };
+        })
+        .filter(
+          (m) =>
+            m.stock?.autoConsume &&
+            m.stockQuantity &&
+            m.dosage &&
+            m.stockQuantity >= m.dosage,
+        );
+
+      await prisma.$transaction(
+        medicinesToUpdate.map((medicine) =>
+          prisma.medicine.update({
+            where: {
+              id: medicine.id,
+            },
+            data: {
+              stock: {
+                update: {
+                  quantity: Math.max(0, medicine.stockQuantity - medicine.dosage),
+                },
+              },
+            },
+          }),
+        ),
+      );
 
       const userMedicines = new Map<
         string,
@@ -85,8 +164,7 @@ cloudinary.config({
         const userHasMedicineWithImage = userMedicineList?.some((m) => m.imageUrl);
 
         if (imageId && !userHasMedicineWithImage) {
-          const image = await cloudinary.api.resource(imageId);
-          const imgUrl = image.secure_url;
+          const imgUrl = await getImageUrlByIdServer(imageId);
           if (imgUrl) imageUrl = imgUrl;
         }
 

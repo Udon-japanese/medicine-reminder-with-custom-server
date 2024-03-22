@@ -5,13 +5,15 @@ import getMedicines from '@/app/actions/getMedicines';
 export default async function getExistingMedicinesWithRecords() {
   const medicines = await getMedicines();
   const medRecs = await getMedicineRecords();
-  const medicineRecords = medRecs.filter(async (record) => {
-    const m = await getMedicineById(record.medicineId);
-    if (!m) return false;
-  });
+  const medicineRecords = await Promise.all(
+    medRecs.map(async (medRec) => {
+      const m = await getMedicineById(medRec.medicineId);
+      return m ? medRec : null;
+    }),
+  );
 
   return {
     medicines,
-    medicineRecords,
-  }
+    medicineRecords: medicineRecords.filter((m) => m),
+  };
 }

@@ -28,6 +28,36 @@ export async function DELETE(req: Request, { params }: Params) {
       return new NextResponse('Invalid Medicine Record ID', { status: 400 });
     }
 
+    const medicineToUpdate = await prisma.medicine.findUnique({
+      where: {
+        id: existingMedicineRecord.medicineId,
+        stock: {
+          autoConsume: false,
+        }
+      },
+      include: {
+        stock: true,
+      }
+    });
+
+    const currentQuantity = medicineToUpdate?.stock?.quantity;
+    const dosage = existingMedicineRecord.dosage;
+
+    if (currentQuantity && dosage) {
+      await prisma.medicine.update({
+        where: {
+          id: medicineToUpdate?.id
+        },
+        data: {
+          stock: {
+            update: {
+              quantity: currentQuantity + dosage
+            }
+          }
+        }
+      })
+    }
+
     const deletedMedicineRecord = await prisma.medicineRecord.deleteMany({
       where: {
         id: numMedicineRecordId,
@@ -103,6 +133,37 @@ export async function PUT(req: Request, { params }: Params) {
         id: numMedicineRecordId,
       },
     });
+
+    const medicineToUpdate = await prisma.medicine.findUnique({
+      where: {
+        id: existingMedicineRecord.medicineId,
+        stock: {
+          autoConsume: false,
+        }
+      },
+      include: {
+        stock: true,
+      }
+    });
+
+    const currentQuantity = medicineToUpdate?.stock?.quantity;
+    const prevDosage = existingMedicineRecord.dosage;
+    const newDosage = Number(dosage);
+
+    if (currentQuantity && prevDosage && newDosage) {
+      await prisma.medicine.update({
+        where: {
+          id: medicineToUpdate?.id
+        },
+        data: {
+          stock: {
+            update: {
+              quantity: Math.max(0, currentQuantity + prevDosage - newDosage)
+            }
+          }
+        }
+      });
+    }
 
     return NextResponse.json(addedMedRecords);
   } catch (err) {

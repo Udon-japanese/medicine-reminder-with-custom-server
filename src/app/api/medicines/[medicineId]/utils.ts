@@ -23,6 +23,8 @@ export async function getUpdateMedicineData({
     memo: memoText,
   } = convertedMedicine;
   const existingIntakeTimeIds = existingMedicine.intakeTimes.map(({ id }) => ({ id }));
+  const existingWeekendIntakeTimeIds =
+    existingMedicine.frequency?.everyday?.weekendIntakeTimes.map(({ id }) => ({ id }));
 
   const upsertIntakeTimes = intakeTimes.flatMap((intakeTime, index) => {
     const id = existingIntakeTimeIds[index]?.id;
@@ -61,7 +63,7 @@ export async function getUpdateMedicineData({
 
   if (intakeTimes.length > 0) {
     const periodData = {
-      startDate: period?.startDate!,
+      startDate: period!.startDate,
       days: period?.hasDeadline ? period?.days : undefined,
     };
 
@@ -130,21 +132,99 @@ export async function getUpdateMedicineData({
 
   return data;
 
-  function createFrequencyData() {
+  async function createFrequencyData() {
     if (!frequency) return;
 
     const freqType = frequency.type;
     switch (freqType) {
       case 'EVERYDAY': {
-        const freqData = {
-          type: freqType,
-        };
-        data.frequency = {
-          upsert: {
-            update: freqData,
-            create: freqData,
-          },
-        };
+        if (frequency.everyday.hasWeekendIntakeTimes) {
+          const { weekends, weekendIntakeTimes } = frequency.everyday;
+          const upsertWeekendIntakeTimes = weekendIntakeTimes?.flatMap(
+            (intakeTime, index) => {
+              const id = existingWeekendIntakeTimeIds?.[index]?.id;
+              if (id) {
+                return [
+                  {
+                    where: { id },
+                    update: intakeTime,
+                    create: intakeTime,
+                  },
+                ];
+              } else {
+                return [];
+              }
+            },
+          );
+          const createWeekendIntakeTimes = weekendIntakeTimes?.slice(
+            existingWeekendIntakeTimeIds?.length,
+          );
+          const deleteWeekendIntakeTimeIds = existingIntakeTimeIds
+            .slice(weekendIntakeTimes?.length)
+            .map(({ id }) => ({ id }));
+
+          const everydayUpdateData = {
+            weekends,
+            weekendIntakeTimes: {
+              upsert: upsertWeekendIntakeTimes,
+              create: createWeekendIntakeTimes,
+              deleteMany: deleteWeekendIntakeTimeIds,
+            },
+          };
+          const everydayCreateData = {
+            weekends,
+            weekendIntakeTimes: {
+              create: weekendIntakeTimes,
+            },
+          };
+
+          data.frequency = {
+            upsert: {
+              update: {
+                type: freqType,
+                everyday: {
+                  upsert: {
+                    update: everydayUpdateData,
+                    create: everydayCreateData,
+                  },
+                },
+              },
+              create: {
+                type: freqType,
+                everyday: {
+                  create: everydayCreateData,
+                },
+              },
+            },
+          };
+        } else {
+          if (existingMedicine.frequency?.everyday) {
+            data.frequency = {
+              upsert: {
+                update: {
+                  type: freqType,
+                  everyday: {
+                    delete: { frequencyId: existingMedicine.frequency?.id },
+                  },
+                },
+                create: {
+                  type: freqType,
+                },
+              },
+            };
+          } else {
+            data.frequency = {
+              upsert: {
+                update: {
+                  type: freqType,
+                },
+                create: {
+                  type: freqType,
+                },
+              },
+            };
+          }
+        }
         break;
       }
       case 'EVERY_X_DAY': {

@@ -1,8 +1,8 @@
 'use client';
 import {
   LocalizationProvider,
-  DesktopDateTimePickerProps,
-  DesktopDateTimePicker,
+  DesktopDateTimePickerProps as MUIDesktopDateTimePickerProps,
+  DesktopDateTimePicker as MUIDesktopDateTimePicker,
   StaticDateTimePicker,
   StaticDateTimePickerProps,
 } from '@mui/x-date-pickers';
@@ -15,7 +15,7 @@ import { format, getYear, isToday } from 'date-fns';
 import TextField from '@/app/components/DateTimePicker/TextField';
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import styles from '@styles/components/dateTimePicker.module.scss';
-import { MedicineRecordForm } from '@/types/zodSchemas/medicineRecord/schema';
+import { MedicineRecordForm } from '@/types/zodSchemas/medicineRecordForm/schema';
 import Modal from '@/app/components/Modal';
 import ActionBar from '@/app/components/DateTimePicker/ActionBar';
 
@@ -50,10 +50,14 @@ export default function DateTimePicker({
   const getLabel = (date: Date | null) => {
     if (date === null || isInvalidDate(date)) return null;
     const isThisYear = getYear(new Date()) === getYear(date);
-    const dayFormatString = isToday(date) ? '今日' : isThisYear ? 'M月d日' : 'yyyy年M月d日';
+    const dayFormatString = isToday(date)
+      ? '今日'
+      : isThisYear
+        ? 'M月d日'
+        : 'yyyy年M月d日';
 
     return format(date, `${dayFormatString} H:mm`);
-  }
+  };
 
   return (
     <>
@@ -67,14 +71,14 @@ export default function DateTimePicker({
             dateFormats={{ year: 'yyyy年', monthAndYear: 'yyyy年M月' }}
           >
             {isMd ? (
-              <CustomDesktopDateTimePicker
+              <DesktopDateTimePicker
                 open={open}
                 setOpen={setOpen}
                 {...fieldProps}
                 inputRef={ref}
               />
             ) : (
-              <CustomMobileDateTimePicker
+              <MobileDateTimePicker
                 open={open}
                 setOpen={setOpen}
                 {...fieldProps}
@@ -89,8 +93,8 @@ export default function DateTimePicker({
   );
 }
 
-function CustomDesktopDateTimePicker(
-  props: DesktopDateTimePickerProps<Date> & {
+function DesktopDateTimePicker(
+  props: MUIDesktopDateTimePickerProps<Date> & {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
   },
@@ -103,7 +107,7 @@ function CustomDesktopDateTimePicker(
   const { open, setOpen, ...other } = props;
 
   return (
-    <DesktopDateTimePicker
+    <MUIDesktopDateTimePicker
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
@@ -126,7 +130,7 @@ function CustomDesktopDateTimePicker(
   );
 }
 
-function CustomMobileDateTimePicker(
+function MobileDateTimePicker(
   props: StaticDateTimePickerProps<Date> & {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
@@ -150,10 +154,11 @@ function CustomMobileDateTimePicker(
         <StaticDateTimePicker
           slots={{
             actionBar: ActionBar,
-            ...props.slots
+            ...props.slots,
           }}
           slotProps={{
             toolbar: { toolbarFormat: 'M月d日' },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             actionBar: { setOpen } as any,
           }}
           {...other}

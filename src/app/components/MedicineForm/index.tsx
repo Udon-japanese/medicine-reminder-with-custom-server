@@ -1,14 +1,13 @@
 'use client';
 import { ArrowBack } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
-import { FormProvider, SubmitHandler, useFieldArray } from 'react-hook-form';
+import { FormProvider, SubmitHandler } from 'react-hook-form';
 import {
   MedicineForm as TMedicineForm,
   medicineFormSchema,
 } from '@/types/zodSchemas/medicineForm/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo, useRef, useState } from 'react';
-import { FieldArrayFormProvider } from '@/app/contexts/FieldArrayFormContext';
 import MedicineNameInput from './MedicineNameInput';
 import MedicineIntakeTimes from './MedicineIntakeTimes';
 import MedicineIntakeTimesSettings from './MedicineIntakeTimesSettings';
@@ -45,7 +44,7 @@ export default function MedicineForm({
 
   const values = useMemo(
     () => (isEditMode ? getValuesFromMedicine(medicine) : undefined),
-    [medicine],
+    [medicine, isEditMode],
   );
 
   const formMethods = useDefaultForm<TMedicineForm>({
@@ -68,13 +67,8 @@ export default function MedicineForm({
   });
   const {
     handleSubmit,
-    control,
     formState: { isDirty: RHFIsDirty, isSubmitting: RHFIsSubmitting },
   } = formMethods;
-  const fieldArrayMethods = useFieldArray({
-    control,
-    name: 'intakeTimes',
-  });
   const isDirty = RHFIsDirty || isDirtyMemoImage;
   const isSubmitting = RHFIsSubmitting || isProcessing;
 
@@ -93,16 +87,37 @@ export default function MedicineForm({
 
     const medicineForm: TMedicineForm =
       data.intakeTimes.length === 0
-        ? { ...data, frequency: null, period: null, notify: null }
+        ? {
+            ...data,
+            frequency: null,
+            period: null,
+            notify: null,
+            stock: data.stock.manageStock
+              ? { ...data.stock, autoConsume: false }
+              : data.stock,
+          }
         : data;
 
     const apiEndpoint = isEditMode ? `/api/medicines/${medicine.id}` : '/api/medicines';
     const method = isEditMode ? 'PUT' : 'POST';
 
+    const bodyObj: {
+      medicineForm: TMedicineForm;
+      imageId?: string;
+      imageIdToDelete?: string;
+    } = { medicineForm };
+  
+    if (imageId) {
+      bodyObj.imageId = imageId;
+    }
+    if (imageIdToDelete) {
+      bodyObj.imageIdToDelete = imageIdToDelete;
+    }
+
     await fetcher(apiEndpoint, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageId, imageIdToDelete, medicineForm }),
+      body: JSON.stringify(bodyObj),
     });
 
     router.push('/medicines');
@@ -129,7 +144,7 @@ export default function MedicineForm({
               startDate: period.startDate,
               days: period.days.toString(),
             }
-          : { hasDeadline: false, startDate: period?.startDate! },
+          : { hasDeadline: false, startDate: period!.startDate },
       unit,
       stock: stock
         ? {
@@ -141,25 +156,42 @@ export default function MedicineForm({
       memo: memo?.text ? memo.text : undefined,
     };
 
-    function getFrequency() {
-      const freqType = frequency?.type!;
+    function getFrequency(): TMedicineForm['frequency'] {
+      const freqType = frequency!.type;
 
       switch (freqType) {
         case 'EVERYDAY':
-          return { type: freqType };
+          const weekends = frequency?.everyday?.weekends;
+          const weekendIntakeTimes = frequency?.everyday?.weekendIntakeTimes;
+          return {
+            type: freqType,
+            everyday:
+              weekends?.length && weekendIntakeTimes?.length
+                ? {
+                    hasWeekendIntakeTimes: true,
+                    weekends: weekends!,
+                    weekendIntakeTimes: weekendIntakeTimes!.map((t) => ({
+                      time: convertMinutesAndDate(t.time),
+                      dosage: t.dosage.toString(),
+                    })),
+                  }
+                : {
+                    hasWeekendIntakeTimes: false,
+                  },
+          };
         case 'EVERY_X_DAY':
-          return { type: freqType, everyXDay: frequency?.everyXDay?.toString()! };
+          return { type: freqType, everyXDay: frequency!.everyXDay!.toString() };
         case 'SPECIFIC_DAYS_OF_WEEK':
-          return { type: freqType, specificDaysOfWeek: frequency?.specificDaysOfWeek! };
+          return { type: freqType, specificDaysOfWeek: frequency!.specificDaysOfWeek };
         case 'SPECIFIC_DAYS_OF_MONTH':
-          return { type: freqType, specificDaysOfMonth: frequency?.specificDaysOfMonth! };
+          return { type: freqType, specificDaysOfMonth: frequency!.specificDaysOfMonth };
         case 'ODD_EVEN_DAY':
-          return { type: freqType, isOddDay: frequency?.oddEvenDay?.isOddDay! };
+          return { type: freqType, isOddDay: frequency!.oddEvenDay!.isOddDay };
         case 'ON_OFF_DAYS':
           return {
             type: freqType,
-            onDays: frequency?.onOffDays?.onDays.toString()!,
-            offDays: frequency?.onOffDays?.offDays.toString()!,
+            onDays: frequency!.onOffDays!.onDays.toString(),
+            offDays: frequency!.onOffDays!.offDays.toString(),
           };
       }
     }
@@ -208,64 +240,66 @@ export default function MedicineForm({
           お薬を{isEditMode ? '編集' : '登録'}
         </div>
         <FormProvider {...formMethods}>
-          <FieldArrayFormProvider {...formMethods} {...fieldArrayMethods}>
-            <form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleFormKeyDown}>
-              <MedicineNameInput />
-              <MedicineIntakeTimes />
-              <MedicineIntakeTimesSettings />
-              <MedicineUnit medicineUnits={medicineUnits} />
-              <MedicineStock />
-              <MedicineMemo
-                MemoImage={
-                  <MemoImage
-                    uploadedImage={uploadedMemoImage}
-                    setUploadedImage={setUploadedMemoImage}
-                    fileInputRef={memoImageInputRef}
-                    setIsDirty={setIsDirtyMemoImage}
-                  />
-                }
-              />
-              {isEditMode ? (
-                <div className={styles.buttonsContainer}>
-                  <div className={styles.buttonContainer}>
-                    <button
-                      className={styles.submitButton}
-                      type='submit'
-                      disabled={!isDirty || isSubmitting}
-                    >
-                      更新
-                    </button>
-                  </div>
-                  <div className={styles.buttonContainer}>
-                    <button
-                      className={`${styles.pauseRestartButton} ${medicine?.isPaused ? styles.isRestartButton : ''}`}
-                      type='button'
-                      disabled={isSubmitting}
-                      onClick={handleUpdateIsPaused}
-                    >
-                      {medicine?.isPaused ? '再開' : '停止'}
-                    </button>
-                  </div>
-                  <div className={styles.buttonContainer}>
-                    <button
-                      type='button'
-                      className={styles.deleteButton}
-                      onClick={handleDeleteMedicine}
-                      disabled={isSubmitting}
-                    >
-                      削除
-                    </button>
-                  </div>
-                </div>
-              ) : (
+          <form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleFormKeyDown}>
+            <MedicineNameInput />
+            <MedicineIntakeTimes />
+            <MedicineIntakeTimesSettings />
+            <MedicineUnit medicineUnits={medicineUnits} />
+            <MedicineStock />
+            <MedicineMemo
+              MemoImage={
+                <MemoImage
+                  uploadedImage={uploadedMemoImage}
+                  setUploadedImage={setUploadedMemoImage}
+                  fileInputRef={memoImageInputRef}
+                  setIsDirty={setIsDirtyMemoImage}
+                />
+              }
+            />
+            {isEditMode ? (
+              <div className={styles.buttonsContainer}>
                 <div className={styles.buttonContainer}>
-                  <button type='submit' disabled={isSubmitting} className={styles.submitButton}>
-                    登録
+                  <button
+                    className={styles.submitButton}
+                    type='submit'
+                    disabled={!isDirty || isSubmitting}
+                  >
+                    更新
                   </button>
                 </div>
-              )}
-            </form>
-          </FieldArrayFormProvider>
+                <div className={styles.buttonContainer}>
+                  <button
+                    className={`${styles.pauseRestartButton} ${medicine?.isPaused ? styles.isRestartButton : ''}`}
+                    type='button'
+                    disabled={isSubmitting}
+                    onClick={handleUpdateIsPaused}
+                  >
+                    {medicine?.isPaused ? '再開' : '停止'}
+                  </button>
+                </div>
+                <div className={styles.buttonContainer}>
+                  <button
+                    type='button'
+                    className={styles.deleteButton}
+                    onClick={handleDeleteMedicine}
+                    disabled={isSubmitting}
+                  >
+                    削除
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className={styles.buttonContainer}>
+                <button
+                  type='submit'
+                  disabled={isSubmitting}
+                  className={styles.submitButton}
+                >
+                  登録
+                </button>
+              </div>
+            )}
+          </form>
         </FormProvider>
       </div>
     </div>

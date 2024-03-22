@@ -1,0 +1,13 @@
+.container {
+  padding: size(2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.calendar {
+  @include skeleton(100%, size(92));
+  border-radius: size(3);
+  margin-bottom: size(5);
+}

@@ -1,0 +1,40 @@
+.container {
+  width: 100%;
+  margin: auto;
+  padding: size(2);
+}
+
+.medicine-status {
+  width: size(1);
+  height: size(1);
+  border-radius: 9999px;
+}
+
+.no-completed {
+  background: $red-400;
+}
+
+.some-completed {
+  background: $yellow-400;
+}
+
+.all-completed {
+  background: $green-400;
+}
+
+.future {
+  background: $gray-300;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: size(10);
+  width: size(10);
+  border-radius: 9999px;
+  border: 0;
+  position: relative;
+  overflow: hidden;
+}

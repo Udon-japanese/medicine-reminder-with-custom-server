@@ -19,9 +19,11 @@ const stockSchema = z.discriminatedUnion('manageStock', [
       .refine((s) => Number(s) <= 1000, {
         message: '在庫数は1000以下の数値を入力してください',
       }),
-    autoConsume: z.boolean({
-      invalid_type_error: '自動消費するかどうかを設定してください',
-    }),
+    autoConsume: z
+      .boolean({
+        invalid_type_error: '自動消費するかどうかを設定してください',
+      })
+      .optional(),
   }),
   z.object({
     manageStock: z.literal(false),
@@ -31,7 +33,7 @@ const stockSchema = z.discriminatedUnion('manageStock', [
 const intakeTimesSchema = z.array(
   z.object({
     time: dateSchema,
-    dosage: dosageSchema
+    dosage: dosageSchema,
   }),
 );
 
@@ -52,6 +54,15 @@ const periodSchema = z.discriminatedUnion('hasDeadline', [
   }),
 ]);
 
+const daysOfWeekSchema = z
+  .array(z.nativeEnum(DayOfWeek), {
+    invalid_type_error: '曜日を１つ以上選択してください',
+  })
+  .min(1, '曜日を１つ以上選択してください')
+  .max(7)
+  .refine((daysOfWeek) => new Set(daysOfWeek).size === daysOfWeek.length, {
+    message: '同じ曜日は複数回選択できません',
+  });
 const onOffDaysSchema = z
   .string()
   .refine((o) => Number.isInteger(Number(o)), { message: '無効な日数です' })
@@ -60,6 +71,30 @@ const onOffDaysSchema = z
 const frequencySchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal(FrequencyType.EVERYDAY),
+    everyday: z
+      .discriminatedUnion('hasWeekendIntakeTimes', [
+        z.object({
+          hasWeekendIntakeTimes: z.literal(true),
+          weekendIntakeTimes: intakeTimesSchema.min(1, '週末の服用時間を1つ以上設定してください'),
+          weekends: daysOfWeekSchema,
+        }),
+        z.object({
+          hasWeekendIntakeTimes: z.literal(false),
+        }),
+      ])
+      .superRefine((value, ctx) => {
+        if (value.hasWeekendIntakeTimes) {
+          getDuplicateDateIndexes(value.weekendIntakeTimes?.map((t) => t.time)).forEach(
+            (index) => {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: '時間が重複しています',
+                path: ['weekendIntakeTimes', index, 'time'],
+              });
+            },
+          );
+        }
+      }),
   }),
   z.object({
     type: z.literal(FrequencyType.EVERY_X_DAY),
@@ -73,15 +108,7 @@ const frequencySchema = z.discriminatedUnion('type', [
   }),
   z.object({
     type: z.literal(FrequencyType.SPECIFIC_DAYS_OF_WEEK),
-    specificDaysOfWeek: z
-      .array(z.nativeEnum(DayOfWeek), {
-        invalid_type_error: '曜日を１つ以上選択してください',
-      })
-      .min(1, '曜日を１つ以上選択してください')
-      .max(7)
-      .refine((daysOfWeek) => new Set(daysOfWeek).size === daysOfWeek.length, {
-        message: '同じ曜日は複数回選択できません',
-      }),
+    specificDaysOfWeek: daysOfWeekSchema,
   }),
   z.object({
     type: z.literal(FrequencyType.SPECIFIC_DAYS_OF_MONTH),
@@ -151,7 +178,23 @@ export const medicineFormSchema = z
         path: ['intakeTimes', index, 'time'],
       });
     });
-  });
+  })
+  .refine(
+    ({ intakeTimes, stock }) => {
+      if (
+        intakeTimes.length > 0 &&
+        stock.manageStock &&
+        stock.autoConsume === undefined
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'お薬を自動消費するかどうかを設定してください',
+      path: ['stock', 'autoConsume'],
+    },
+  );
 export type MedicineForm = z.infer<typeof medicineFormSchema>;
 
 export const medicineUnitFormSchema = z

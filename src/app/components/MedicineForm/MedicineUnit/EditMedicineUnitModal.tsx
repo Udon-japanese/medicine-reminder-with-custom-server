@@ -10,7 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Close, Delete, Add } from '@mui/icons-material';
 import { MedicineUnit } from '@prisma/client';
 import { useRouter } from 'next/navigation';
-import { Dispatch, SetStateAction, useState } from 'react';
+import { Dispatch, SetStateAction } from 'react';
 import { FormProvider, SubmitHandler, useFieldArray } from 'react-hook-form';
 import styles from '@styles/components/medicineForm/medicineUnit/editMedicineUnitModal.module.scss';
 import LinerProgress from '../../LinerProgress';

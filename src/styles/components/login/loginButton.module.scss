@@ -1,0 +1,16 @@
+@use '../button' as *;
+
+.button {
+  margin: size(6);
+  @include button($black);
+  @include text-sm;
+  padding: size(1.5) size(3);
+  color: $white;
+  border: 1px solid $black;
+
+  @include hover() {
+    transition-duration: 0.1s;
+    color: black;
+    background-color: $white;
+  }
+}

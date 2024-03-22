@@ -19,6 +19,11 @@ const getMedicineById = async (
         intakeTimes: true,
         frequency: {
           include: {
+            everyday: {
+              include: {
+                weekendIntakeTimes: true,
+              }
+            },
             oddEvenDay: true,
             onOffDays: true,
           },
@@ -30,8 +35,8 @@ const getMedicineById = async (
     });
 
     return medicine;
-  } catch (error: any) {
-    console.log(error, 'SERVER_ERROR')
+  } catch (error) {
+    console.error(error, 'SERVER_ERROR')
     return null;
   }
 };

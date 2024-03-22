@@ -6,8 +6,15 @@ import {
 import isCurrentMedicine from '@/utils/isCurrentMedicine';
 import { isIntakeDate } from '@/utils/isIntakeDate';
 import { MedicineRecord } from '@prisma/client';
-import { addDays, isSameDay, startOfDay } from 'date-fns';
-import { useEffect, useMemo, useState } from 'react';
+import { addDays, isAfter, isSameDay, startOfDay } from 'date-fns';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+type Status =
+  | 'no-completed'
+  | 'some-completed'
+  | 'all-completed'
+  | 'no-intake-times'
+  | 'future';
 
 export default function useIntakeTimes({
   currentDate,
@@ -22,6 +29,7 @@ export default function useIntakeTimes({
   completedTimes: [number, MedicineWithDosageAndRecord[]][];
   skippedTimes: [number, MedicineWithDosageAndRecord[]][];
   scheduledMedicines: MedicineWithRelations[];
+  getMedicinesStatus: () => Status;
 } {
   const [pendingTimes, setPendingTimes] = useState<[number, MedicineWithDosage[]][]>([]);
   const [completedTimes, setCompletedTimes] = useState<
@@ -49,8 +57,9 @@ export default function useIntakeTimes({
           return isSameDay(r.actualIntakeDate, currentDate);
         }
       }),
-    [currentDate, existingMedicines],
+    [currentDate, medicineRecords],
   );
+
   const sortMapEntriesByKey = <T, U>(map: Map<T, U[]>): [T, U[]][] => {
     return [...map.entries()].sort((a, b) => {
       if (a[0] < b[0]) return -1;
@@ -58,6 +67,36 @@ export default function useIntakeTimes({
       return 0;
     });
   };
+  const getMedicinesStatus = useCallback((): Status => {
+    const pLength = pendingTimes.length;
+    const cLength = completedTimes.length;
+    const sLength = skippedTimes.length;
+    const allTimesLength = pLength + cLength + sLength;
+    const now = startOfDay(new Date());
+    const currDate = startOfDay(currentDate);
+
+    if (allTimesLength === 0) {
+      return 'no-intake-times';
+    }
+
+    if (isAfter(currDate, now)) {
+      return 'future';
+    }
+
+    if (allTimesLength === cLength + sLength && pLength === 0) {
+      return 'all-completed';
+    }
+
+    if (cLength > 0 || sLength > 0) {
+      return 'some-completed';
+    }
+
+    if (allTimesLength === pLength) {
+      return 'no-completed';
+    }
+
+    return 'no-intake-times';
+  }, [pendingTimes, completedTimes, skippedTimes, currentDate]);
 
   useEffect(() => {
     const pendingTimesMap = new Map<number, MedicineWithDosage[]>();
@@ -91,7 +130,7 @@ export default function useIntakeTimes({
       }
 
       const startOfCurrentDay = startOfDay(currentDate);
-      const startDate = medicine.period?.startDate!;
+      const startDate = medicine.period!.startDate;
       const days = medicine.period?.days;
 
       if (days && days > 0 && addDays(startDate, days) < startOfCurrentDay) {
@@ -161,12 +200,19 @@ export default function useIntakeTimes({
     setCompletedTimes(sortMapEntriesByKey(completedTimesMap));
     setSkippedTimes(sortMapEntriesByKey(skippedTimesMap));
     setScheduledMedicines(scheduledMedicines);
-  }, [currentDate, existingMedicines, medicineRecords]);
+  }, [
+    currentDate,
+    existingMedicines,
+    medicineRecords,
+    currentMedicineRecords,
+    currentMedicines,
+  ]);
 
   return {
     pendingTimes,
     completedTimes,
     skippedTimes,
     scheduledMedicines,
+    getMedicinesStatus,
   };
 }

@@ -15,11 +15,12 @@
   width: 100%;
   max-width: calc(100vw - size(22));
   white-space: nowrap;
-  @include text-xs;
+  @include text-sm;
   display: flex;
   flex-direction: column;
 
   @include mq() {
+    @include text-xs;
     max-width: calc(100% - size(9));
   }
 }
@@ -64,12 +65,19 @@
 }
 
 .notify-wrapper {
+  @include text-2xl;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 9999px;
-  width: size(9);
-  height: size(9);
+  width: size(10);
+  height: size(10);
+  color: $white;
+
+  @include mq() {
+    width: size(9);
+    height: size(9);
+  }
 }
 
 .is-notify {
@@ -107,7 +115,11 @@
 
 .name {
   @include font-medium;
-  @include text-lg;
+  @include text-xl;
   @include line-clamp(1);
   margin-bottom: size(2);
+
+  @include mq() {
+    @include text-lg;
+  }
 }

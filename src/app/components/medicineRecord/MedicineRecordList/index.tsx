@@ -1,9 +1,6 @@
 'use client';
 import MedicineRecordItem from '../MedicineRecordItem';
-import {
-  MedicineWithDosageAndRecord,
-  MedicineWithDosage,
-} from '@/types';
+import { MedicineWithDosageAndRecord, MedicineWithDosage } from '@/types';
 
 export type MedicineRecordType = 'completed' | 'pending' | 'skipped';
 
@@ -16,11 +13,11 @@ export default function MedicineRecordList({
   currentDate: Date;
   medicineRecordType?: MedicineRecordType;
 }) {
-  return intakeTimes.map(([time, medicines], index) => (
+  return intakeTimes.map(([intakeTime, medicinesWithDosage]) => (
     <MedicineRecordItem
-      key={index}
-      time={time}
-      medicines={medicines}
+      key={intakeTime}
+      intakeTime={intakeTime}
+      medicinesWithDosage={medicinesWithDosage}
       medicineRecordType={medicineRecordType}
       currentDate={currentDate}
     />

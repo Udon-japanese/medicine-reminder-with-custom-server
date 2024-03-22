@@ -1,4 +1,6 @@
 import webPush from 'web-push';
+import dotenv from 'dotenv';
+dotenv.config();
 
 webPush.setVapidDetails(
   'mailto:hoge@hoge.hoge',

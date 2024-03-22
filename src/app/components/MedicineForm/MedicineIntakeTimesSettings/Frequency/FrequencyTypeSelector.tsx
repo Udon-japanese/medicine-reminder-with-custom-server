@@ -7,7 +7,7 @@ import styles from '@styles/components/medicineForm/medicineIntakeTimesSettings/
 
 export default function FrequencyTypeSelector() {
   const frequencyTypes = Object.values(FrequencyType);
-  const { control } = useFormContext<MedicineForm>();
+  const { control, getValues, setValue } = useFormContext<MedicineForm>();
 
   return (
     <Controller
@@ -24,7 +24,18 @@ export default function FrequencyTypeSelector() {
                 type='button'
                 disabled={isCurrentFreqType}
                 className={styles.popoverItem}
-                onClick={() => onChange(freqType)}
+                onClick={() => {
+                  onChange(freqType);
+                  
+                  if (freqType === 'EVERYDAY') {
+                    if (getValues('frequency.everyday.weekendIntakeTimes').length === 0) {
+                      setValue(
+                        'frequency.everyday.weekendIntakeTimes',
+                        getValues('intakeTimes'),
+                      );
+                    }
+                  }
+                }}
                 {...props}
               >
                 {getFrequencyText(freqType)}

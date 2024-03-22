@@ -1,32 +1,22 @@
-'use client';
-import { signIn, signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import getCurrentUser from './actions/getCurrentUser';
+import LoginButton from './components/Login/LoginButton';
+import { Suspense } from 'react';
 
-export default function Home({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const { data: session } = useSession();
+export default async function Page() {
+  const currentUser = await getCurrentUser();
+  if (!(currentUser?.id && currentUser.name)) {
+    return (
+      <Suspense>
+        <LoginButton />
+      </Suspense>
+    );
+  }
 
-  return session?.user ? (
-    <>
-    <button onClick={() => signOut()}>ログアウト</button>
-    <Link href="/today">今日のお薬</Link>
-    <Link href="/calendar">カレンダー</Link>
-    <Link href="/medicines">お薬一覧</Link>
-    <Link href="/mypage">マイページ</Link>
-    </>
-  ) : (
-    <button
-      onClick={() =>
-        signIn('google', {
-          callbackUrl: (searchParams.callbackUrl as string) || '/calendar',
-        })
-      }
-    >
-      ログイン
-    </button>
+  return (
+    <div>
+      <h1>ようこそ、{currentUser.name}さん</h1>
+      <Link href='/today'>本日の予定を確認しましょう。</Link>
+    </div>
   );
 }

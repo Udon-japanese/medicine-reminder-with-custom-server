@@ -14,7 +14,7 @@ export const isIntakeDate = ({
   if (!(frequency && currentDate && startDate)) {
     return false;
   }
-
+  
   switch (frequency.type) {
     case 'EVERYDAY': {
       return true;

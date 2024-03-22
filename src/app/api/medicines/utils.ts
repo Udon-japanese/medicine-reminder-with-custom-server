@@ -16,6 +16,15 @@ type Stock =
 type Frequency =
   | {
       type: 'EVERYDAY';
+      everyday:
+        | {
+            hasWeekendIntakeTimes: true;
+            weekends: DayOfWeek[];
+            weekendIntakeTimes: { time: number; dosage: number }[];
+          }
+        | {
+            hasWeekendIntakeTimes: false;
+          };
     }
   | {
       type: 'EVERY_X_DAY';
@@ -47,19 +56,7 @@ export function convertMedicineForm(form: MedicineForm) {
   }));
 
   const freqType = form?.frequency?.type;
-  const frequency: Frequency =
-    freqType === 'EVERY_X_DAY'
-      ? {
-          type: FrequencyType.EVERY_X_DAY,
-          everyXDay: parseInt(form?.frequency?.everyXDay!, 10),
-        }
-      : freqType === 'ON_OFF_DAYS'
-        ? {
-            type: FrequencyType.ON_OFF_DAYS,
-            onDays: parseInt(form?.frequency?.onDays!, 10),
-            offDays: parseInt(form?.frequency?.offDays!, 10),
-          }
-        : form.frequency;
+  const frequency = getFrequency();
 
   const period = form.period?.hasDeadline
     ? { ...form.period, days: parseInt(form.period.days!, 10) }
@@ -69,9 +66,50 @@ export function convertMedicineForm(form: MedicineForm) {
     ? {
         manageStock: true,
         quantity: parseInt(form.stock.quantity),
-        autoConsume: form.stock.autoConsume,
+        autoConsume: form.stock.autoConsume!,
       }
     : { manageStock: false };
+
+  function getFrequency(): Frequency {
+    switch (freqType) {
+      case 'EVERYDAY':
+        if (form.frequency!.everyday.hasWeekendIntakeTimes) {
+          return {
+            type: FrequencyType.EVERYDAY,
+            everyday: {
+              hasWeekendIntakeTimes: true,
+              weekends: form.frequency!.everyday.weekends,
+              weekendIntakeTimes: form.frequency!.everyday.weekendIntakeTimes.map(
+                (intakeTime) => ({
+                  time: convertMinutesAndDate(intakeTime.time),
+                  dosage: Number(intakeTime.dosage),
+                }),
+              ),
+            },
+          };
+        } else {
+          return {
+            type: FrequencyType.EVERYDAY,
+            everyday: {
+              hasWeekendIntakeTimes: false,
+            },
+          };
+        }
+      case 'EVERY_X_DAY':
+        return {
+          type: FrequencyType.EVERY_X_DAY,
+          everyXDay: parseInt(form!.frequency!.everyXDay, 10),
+        };
+      case 'ON_OFF_DAYS':
+        return {
+          type: FrequencyType.ON_OFF_DAYS,
+          onDays: parseInt(form!.frequency!.onDays, 10),
+          offDays: parseInt(form!.frequency!.offDays, 10),
+        };
+      default:
+        return form.frequency;
+    }
+  }
 
   return { ...form, intakeTimes, frequency, period, stock };
 }
@@ -110,7 +148,7 @@ export function getCreateMedicineData({
     createFrequencyData();
     data.period = {
       create: {
-        startDate: period?.startDate!,
+        startDate: period!.startDate,
         days: period?.hasDeadline ? period?.days : undefined,
       },
     };
@@ -143,11 +181,27 @@ export function getCreateMedicineData({
     const freqType = frequency.type;
     switch (freqType) {
       case 'EVERYDAY':
-        data.frequency = {
-          create: {
-            type: freqType,
-          },
-        };
+        if (frequency.everyday.hasWeekendIntakeTimes) {
+          data.frequency = {
+            create: {
+              type: freqType,
+              everyday: {
+                create: {
+                  weekends: frequency.everyday.weekends,
+                  weekendIntakeTimes: {
+                    create: frequency.everyday.weekendIntakeTimes,
+                  },
+                },
+              },
+            },
+          };
+        } else {
+          data.frequency = {
+            create: {
+              type: freqType,
+            },
+          };
+        }
         break;
       case 'EVERY_X_DAY':
         data.frequency = {

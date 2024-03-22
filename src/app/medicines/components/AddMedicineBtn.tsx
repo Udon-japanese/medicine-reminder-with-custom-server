@@ -1,5 +1,4 @@
 'use client';
-import useMediaQuery from '@/app/hooks/useMediaQuery';
 import styles from '@styles/components/medicines/addMedicineBtn.module.scss';
 import { Add } from '@mui/icons-material';
 import Link from 'next/link';

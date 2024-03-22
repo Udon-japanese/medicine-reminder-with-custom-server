@@ -12,7 +12,7 @@ interface Props extends ControllerRenderProps<MedicineForm> {
 }
 
 const SelectMedicineUnitButton = forwardRef<HTMLDivElement, Props>(
-  ({ medUnit, setOpenPopover, ...fieldProps }, ref) => {
+  function SelectMedicineUnitButton({ medUnit, setOpenPopover, ...fieldProps }, ref) {
     const { onChange } = fieldProps;
     const isCurrentUnit = fieldProps.value === medUnit.unit;
     const { isMd } = useMediaQuery();

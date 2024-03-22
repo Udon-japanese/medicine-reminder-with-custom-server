@@ -5,10 +5,11 @@ import { Done } from '@mui/icons-material';
 import { DayOfWeek } from '@prisma/client';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import useErrorMessage from '@/app/hooks/useErrorMessage';
+import { useEffect } from 'react';
 
 export default function DaysOfWeekSelector() {
   const daysOfWeek = Object.values(DayOfWeek);
-  const { control, trigger } = useFormContext<MedicineForm>();
+  const { control, trigger, setValue } = useFormContext<MedicineForm>();
   const watchedDaysOfWeek = useWatch({ control, name: 'frequency.specificDaysOfWeek' });
   const err = useErrorMessage<MedicineForm>('frequency.specificDaysOfWeek');
 
@@ -18,6 +19,13 @@ export default function DaysOfWeekSelector() {
       : [...(watchedDaysOfWeek ?? []), dayOfWeek];
     return newDaysOfWeek.sort((a, b) => daysOfWeek.indexOf(a) - daysOfWeek.indexOf(b));
   };
+
+  useEffect(() => {
+    if (watchedDaysOfWeek?.length !== 7) return;
+    setValue('frequency.type', 'EVERYDAY');
+    setValue('frequency.specificDaysOfWeek', []);
+    trigger(['frequency.type', 'frequency.specificDaysOfWeek']);
+  }, [watchedDaysOfWeek, setValue, trigger]);
 
   return (
     <>
@@ -43,7 +51,7 @@ export default function DaysOfWeekSelector() {
           </>
         )}
       />
-      {err && <div className={styles.errMessage}>{err}</div>} 
+      {err && <div className={styles.errMessage}>{err}</div>}
     </>
   );
 }

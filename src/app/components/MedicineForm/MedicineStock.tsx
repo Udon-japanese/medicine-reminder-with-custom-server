@@ -1,4 +1,3 @@
-import ErrorMessage from '@/app/components/ErrorMessage';
 import NumberInput from '@/app/components/NumberInput';
 import { Popover } from '@/app/components/Popover';
 import SwitchButton from '@/app/components/SwitchButton';
@@ -6,12 +5,13 @@ import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
 import { useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import styles from '@styles/components/medicineForm/medicineStock.module.scss';
-import inputWithLabelStyles from '@styles/components/medicineForm/input-with-label.module.scss';
+import inputWithLabelStyles from '@styles/components/inputWithLabel.module.scss';
 import useErrorMessage from '@/app/hooks/useErrorMessage';
 
 export default function MedicineStock() {
   const { control, setValue, trigger, getValues } = useFormContext<MedicineForm>();
   const [openPopover, setOpenPopover] = useState(false);
+  const intakeTimes = useWatch({ control, name: 'intakeTimes' });
   const stock = useWatch({ control, name: 'stock' });
   const unit = useWatch({ control, name: 'unit' });
   const quantityErr = useErrorMessage<MedicineForm>('stock.quantity');
@@ -54,7 +54,9 @@ export default function MedicineStock() {
             {stock?.manageStock && (
               <>
                 <div className={styles.quantityContainer}>
-                  <label htmlFor="stock.quantity" className={styles.quantityLabel}>在庫数</label>
+                  <label htmlFor='stock.quantity' className={styles.quantityLabel}>
+                    在庫数
+                  </label>
                   <label
                     className={`${inputWithLabelStyles.inputContainer} ${quantityErr ? inputWithLabelStyles.isInvalid : inputWithLabelStyles.isValid}`}
                   >
@@ -74,21 +76,28 @@ export default function MedicineStock() {
                     </div>
                   )}
                 </div>
-                <div>
-                  <label className={styles.autoConsumeContainer} htmlFor='autoConsumeStock'>
-                    <div className={styles.labelAndButtonContainer}>
-                    <div>自動消費</div>
-                    <SwitchButton<MedicineForm>
-                      name='stock.autoConsume'
-                      id='autoConsumeStock'
-                    />
-                    </div>
-                    <div className={styles.info}>アラーム時間になると自動的に在庫が消費されます</div>
-                  </label>
-                  {autoConsumeErr && (
-                    <div className={styles.errMessage}>{autoConsumeErr}</div>
-                  )}
-                </div>
+                {intakeTimes.length > 0 && (
+                  <>
+                    <label
+                      className={styles.autoConsumeContainer}
+                      htmlFor='autoConsumeStock'
+                    >
+                      <div className={styles.labelAndButtonContainer}>
+                        <div>自動消費</div>
+                        <SwitchButton<MedicineForm>
+                          name='stock.autoConsume'
+                          id='autoConsumeStock'
+                        />
+                      </div>
+                      <div className={styles.info}>
+                        アラーム時間になると自動的に在庫が消費されます
+                      </div>
+                    </label>
+                    {autoConsumeErr && (
+                      <div className={styles.errMessage}>{autoConsumeErr}</div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </div>

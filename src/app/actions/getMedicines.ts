@@ -17,6 +17,11 @@ const getMedicines = async () => {
         intakeTimes: true,
         frequency: {
           include: {
+            everyday: {
+              include: {
+                weekendIntakeTimes: true,
+              },
+            },
             oddEvenDay: true,
             onOffDays: true,
           },

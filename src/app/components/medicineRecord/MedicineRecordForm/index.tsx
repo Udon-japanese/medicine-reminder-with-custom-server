@@ -1,24 +1,31 @@
 'use client';
 import { MedicineWithRelations } from '@/types';
 import MedicineRecordList from '../MedicineRecordList';
-import { FormProvider, useFieldArray } from 'react-hook-form';
-import { useMemo, useState } from 'react';
+import { FormProvider } from 'react-hook-form';
+import { useCallback, useMemo, useState } from 'react';
 import { useDefaultForm } from '@/lib/hookForm';
 import {
-  MedicineRecordForm,
+  MedicineRecordForm as TMedicineRecordForm,
   medicineRecordFormSchema,
-} from '@/types/zodSchemas/medicineRecord/schema';
+} from '@/types/zodSchemas/medicineRecordForm/schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Popover } from '../../Popover';
-import DateTimePicker from './DateTimePicker';
-import NumberInput from '../../NumberInput';
-import CheckButton from '../../CheckButton';
-import { fetcher } from '@/utils';
-import { convertMinutesAndDate } from '@/utils/convertMinutesAndDate';
-import { format, isToday, startOfDay } from 'date-fns';
-import { useRouter } from 'next/navigation';
+import {
+  addHours,
+  addMinutes,
+  format,
+  getHours,
+  getMinutes,
+  isToday,
+  startOfDay,
+} from 'date-fns';
 import { MedicineRecord } from '@prisma/client';
 import useIntakeTimes from '@/app/hooks/useIntakeTimes';
+import styles from '@styles/components/medicineRecord/medicineRecordForm.module.scss';
+import { Done, Add } from '@mui/icons-material';
+import MedicineRecordPopoverContent from '../MedicineRecordPopoverContent';
+import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 
 export default function MedicineRecordForm({
   medicineRecords,
@@ -29,27 +36,33 @@ export default function MedicineRecordForm({
   existingMedicines: MedicineWithRelations[];
   currentDate: Date;
 }) {
-  const router = useRouter();
-  const medicineRecordListProps = {
-    currentDate,
-  };
+  const pathname = usePathname();
+  const isTodayPage = pathname === '/today';
+  const emptyStateMessage = isTodayPage
+    ? '本日飲むお薬はありません'
+    : 'お薬記録はありません';
   const [openPopover, setOpenPopover] = useState(false);
-  const [openDateTimePicker, setOpenDateTimePicker] = useState(false);
-  const { scheduledMedicines, pendingTimes, completedTimes, skippedTimes } =
+  const { pendingTimes, completedTimes, skippedTimes, getMedicinesStatus } =
     useIntakeTimes({ currentDate, existingMedicines, medicineRecords });
+  const showEmptyState =
+    completedTimes.length === 0 && pendingTimes.length === 0 && skippedTimes.length === 0;
+  const medicinesStatus = getMedicinesStatus();
+  const values = useMemo(() => {
+    const now = new Date();
 
-  const values = useMemo(
-    () => ({
-      intakeDate: new Date(),
-      medicines: scheduledMedicines.map((medicine) => ({
+    return {
+      intakeDate: addMinutes(
+        addHours(startOfDay(currentDate), getHours(now)),
+        getMinutes(now),
+      ),
+      medicines: existingMedicines.map((medicine) => ({
         dosage: medicine.intakeTimes[0]?.dosage?.toString() || '1',
         medicineId: medicine.id,
         isSelected: false,
       })),
-    }),
-    [scheduledMedicines],
-  );
-  const formMethods = useDefaultForm<MedicineRecordForm>({
+    };
+  }, [currentDate, existingMedicines]);
+  const formMethods = useDefaultForm<TMedicineRecordForm>({
     resolver: zodResolver(medicineRecordFormSchema),
     mode: 'onBlur',
     shouldFocusError: false,
@@ -59,124 +72,98 @@ export default function MedicineRecordForm({
     },
     values,
   });
-  const {
-    control,
-    handleSubmit,
-    formState: { isDirty, errors },
-  } = formMethods;
-  const fieldArrayMethods = useFieldArray({
-    control,
-    name: 'medicines',
-  });
-  const { fields } = fieldArrayMethods;
 
-  const onSubmit = async ({ intakeDate, medicines }: MedicineRecordForm) => {
-    const selectedMedicines = medicines.filter((medicine) => medicine.isSelected);
-
-    await fetcher('/api/medicineRecords', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        actualIntakeTime: convertMinutesAndDate(intakeDate),
-        actualIntakeDate: startOfDay(intakeDate),
-        medicines: selectedMedicines,
-        isCompleted: true,
-        isSkipped: false,
-        isIntakeTimeScheduled: false,
-      }),
-    });
-
-    setOpenPopover(false);
-    router.refresh();
-  };
+  const getMedicinesStatusClassName = useCallback(() => {
+    switch (medicinesStatus) {
+      case 'future':
+        return styles.future;
+      case 'no-completed':
+        return styles.noCompleted;
+      case 'some-completed':
+        return styles.someCompleted;
+      case 'all-completed':
+        return styles.allCompleted;
+      case 'no-intake-times':
+        return '';
+    }
+  }, [medicinesStatus]);
 
   return (
     <FormProvider {...formMethods}>
-      <Popover
-        align='end'
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-        content={
+      <div
+        className={`${styles.container} ${isTodayPage && showEmptyState ? styles.isTodayPageContainer : ''}`}
+      >
+        <Popover
+          align='end'
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+          content={
+            <MedicineRecordPopoverContent
+              setOpenPopover={setOpenPopover}
+              currentDate={currentDate}
+              anyProps={{
+                existingMedicines,
+              }}
+            />
+          }
+        >
+          <button className={styles.newRecordButton} type='button'>
+            <Add fontSize='inherit' />
+          </button>
+        </Popover>
+        <div className={styles.headerContainer}>
+          {medicinesStatus !== 'no-intake-times' && (
+            <div
+              className={`${styles.medicinesStatus} ${getMedicinesStatusClassName()}`}
+            />
+          )}
+          <div>{isToday(currentDate) ? '今日' : format(currentDate, 'M月d日')}</div>
+        </div>
+        {showEmptyState ? (
+          <div
+            className={`${styles.emptyContainer} ${!isTodayPage ? styles.isCalendarPageEmptyContainer : ''}`}
+          >
+            <Image
+              src='/empty.png'
+              alt={emptyStateMessage}
+              width={563}
+              height={165}
+              sizes='100vw'
+              className={styles.emptyImage}
+              priority
+            />
+            <div>{emptyStateMessage}</div>
+          </div>
+        ) : (
           <>
-            <div>お薬</div>
-            {fields.length > 0 &&
-              fields.map((field, index) => {
-                const medicine = existingMedicines[index];
-                const dosageErr = errors?.medicines?.[index]?.dosage?.message;
-
-                return (
-                  <div key={field.id}>
-                    <CheckButton<MedicineRecordForm>
-                      name={`medicines.${index}.isSelected`}
-                    />
-                    <div>{medicine.name}</div>
-                    <NumberInput<MedicineRecordForm>
-                      name={`medicines.${index}.dosage`}
-                      max={1000}
-                      decimalPlaces={2}
-                      error={dosageErr}
-                    />
-                    {medicine.unit}
-                  </div>
-                );
-              })}
-            <DateTimePicker open={openDateTimePicker} setOpen={setOpenDateTimePicker} />
-            {isDirty ? (
-              <button type='button' onClick={handleSubmit(onSubmit)}>
-                登録
-              </button>
-            ) : (
-              <div>だめ</div>
+            {pendingTimes.length > 0 && (
+              <MedicineRecordList currentDate={currentDate} intakeTimes={pendingTimes} />
+            )}
+            {(completedTimes.length > 0 || skippedTimes.length > 0) && (
+              <div className={styles.completedOrSkippedTimesContainer}>
+                <div className={styles.doneTextContainer}>
+                  <Done fontSize='inherit' />
+                  <div>完了</div>
+                </div>
+                {completedTimes.length > 0 && (
+                  <MedicineRecordList
+                    currentDate={currentDate}
+                    intakeTimes={completedTimes}
+                    medicineRecordType='completed'
+                  />
+                )}
+                {skippedTimes.length > 0 && (
+                  <MedicineRecordList
+                    currentDate={currentDate}
+                    intakeTimes={skippedTimes}
+                    medicineRecordType='skipped'
+                  />
+                )}
+              </div>
             )}
           </>
-        }
-      >
-        <button type='button'>任意の薬を登録</button>
-      </Popover>
-      <div>{isToday(currentDate) ? '今日' : format(currentDate, 'M月d日')}</div>
-      {completedTimes.length === 0 &&
-      pendingTimes.length === 0 &&
-      skippedTimes.length === 0 ? (
-        <div>お薬記録はありません</div>
-      ) : (
-        <>
-          {pendingTimes.length > 0 && (
-            <>
-              <div>まだ飲んでない</div>
-              <MedicineRecordList
-                {...medicineRecordListProps}
-                intakeTimes={pendingTimes}
-              />
-            </>
-          )}
-          <br />
-          <br />
-          <br />
-          {completedTimes.length > 0 && (
-            <>
-              <div>飲んだ</div>
-              <MedicineRecordList
-                {...medicineRecordListProps}
-                intakeTimes={completedTimes}
-                medicineRecordType='completed'
-              />
-            </>
-          )}
-          <br />
-          <br />
-          <br />
-          {skippedTimes.length > 0 && (
-            <>
-              <div>スキップした</div>
-              <MedicineRecordList
-                {...medicineRecordListProps}
-                intakeTimes={skippedTimes}
-                medicineRecordType='skipped'
-              />
-            </>
-          )}
-        </>
-      )}
+        )}
+      </div>
     </FormProvider>
   );
 }

@@ -1,6 +1,6 @@
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { prisma } from '@/lib/prismadb';
-import { medicineRecordFormSchema } from '@/types/zodSchemas/medicineRecord/schema';
+import { medicineRecordFormSchema } from '@/types/zodSchemas/medicineRecordForm/schema';
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import { Prisma } from '@prisma/client';
 import { isDate } from 'date-fns';
@@ -98,6 +98,49 @@ export async function POST(req: Request) {
     }
 
     const { intakeDate: actualIntakeDate, medicines } = validation.data;
+
+    const completedOrSkippedMedicines = await prisma.medicine.findMany({
+      where: {
+        id: {
+          in: medicines.map((m) => m.medicineId),
+        },
+        stock: {
+          autoConsume: false,
+        },
+      },
+      include: {
+        stock: true,
+      },
+    });
+    const medicinesToUpdate = completedOrSkippedMedicines
+      .map((medicine) => {
+        const relatedMedicine = medicines.find((m) => m.medicineId === medicine.id);
+        const stockQuantity = medicine.stock?.quantity;
+        const dosage = relatedMedicine?.dosage;
+        return {
+          ...medicine,
+          stockQuantity: stockQuantity ? Number(stockQuantity) : NaN,
+          dosage: dosage ? Number(dosage) : NaN,
+        };
+      })
+      .filter((m) => m.stockQuantity && m.dosage && m.stockQuantity >= m.dosage);
+
+    await prisma.$transaction(
+      medicinesToUpdate.map((medicine) =>
+        prisma.medicine.update({
+          where: {
+            id: medicine.id,
+          },
+          data: {
+            stock: {
+              update: {
+                quantity: Math.max(0, medicine.stockQuantity - medicine.dosage),
+              },
+            },
+          },
+        }),
+      ),
+    );
 
     const commonData = {
       userId: currentUser.id,

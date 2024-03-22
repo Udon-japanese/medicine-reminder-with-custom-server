@@ -6,6 +6,7 @@ import DaysOfMonthSelector from './DaysOfMonthSelector';
 import OddEvenDaySelector from './OddEvenDaySelector';
 import OnOffDaysInput from './OnOffDaysInput';
 import styles from '@styles/components/medicineForm/medicineIntakeTimesSettings/frequency/frequencyTypeBasedForm/index.module.scss';
+import WeekendIntakeTimes from './WeekendIntakeTimes';
 
 export function FrequencyTypeBasedForm() {
   const { control } = useFormContext<MedicineForm>();
@@ -14,7 +15,11 @@ export function FrequencyTypeBasedForm() {
 
   switch (frequencyType) {
     case 'EVERYDAY':
-      return null;
+      return (
+        <div className={styles.container}>
+          <WeekendIntakeTimes />
+        </div>
+      );
 
     case 'EVERY_X_DAY':
       return (

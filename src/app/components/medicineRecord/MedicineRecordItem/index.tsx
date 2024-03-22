@@ -1,58 +1,53 @@
 'use client';
-import CheckButton from '@/app/components/CheckButton';
 import { Popover } from '@/app/components/Popover';
 import {
   MedicineRecordForm,
   medicineRecordFormSchema,
-} from '@/types/zodSchemas/medicineRecord/schema';
+} from '@/types/zodSchemas/medicineRecordForm/schema';
 import { convertMinutesAndDate } from '@/utils/convertMinutesAndDate';
 import { Done } from '@mui/icons-material';
-import { addMinutes, format, startOfDay } from 'date-fns';
-import { useMemo, useState } from 'react';
-import { FormProvider, useFieldArray } from 'react-hook-form';
-import DateTimePicker from '../MedicineRecordForm/DateTimePicker';
+import { addMinutes, differenceInMinutes, format, isBefore, startOfDay } from 'date-fns';
+import { useCallback, useMemo, useState } from 'react';
+import { FormProvider } from 'react-hook-form';
 import { fetcher } from '@/utils';
 import { MedicineWithDosageAndRecord, MedicineWithDosage } from '@/types';
 import { useRouter } from 'next/navigation';
-import NumberInput from '../../NumberInput';
 import { MedicineRecordType } from '../MedicineRecordList';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDefaultForm } from '@/lib/hookForm';
+import styles from '@styles/components/medicineRecord/medicineRecordItem.module.scss';
+import Spinner from '../../Spinner';
+import MedicineRecordPopoverContent from '../MedicineRecordPopoverContent';
+import { isMedicineWithRecord } from '../utils';
 
 export default function MedicineRecordItem({
-  time,
-  medicines,
+  intakeTime,
+  medicinesWithDosage,
   currentDate,
   medicineRecordType,
 }: {
-  time: number;
-  medicines: Array<MedicineWithDosage | MedicineWithDosageAndRecord>;
+  intakeTime: number;
+  medicinesWithDosage: Array<MedicineWithDosage | MedicineWithDosageAndRecord>;
   currentDate: Date;
   medicineRecordType: MedicineRecordType;
 }) {
-  const initialIntakeDate = addMinutes(
-    medicineRecordType !== 'pending'
-      ? (medicines as MedicineWithDosageAndRecord[])[0].record.actualIntakeDate
-      : startOfDay(currentDate),
-    time,
-  );
-  const isMedicineWithRecord = (
-    medicine: MedicineWithDosage | MedicineWithDosageAndRecord,
-  ): medicine is MedicineWithDosageAndRecord => {
-    return 'record' in medicine;
-  };
-  const isEditMode = (
-    medicines: Array<MedicineWithDosage | MedicineWithDosageAndRecord>,
-  ): medicines is MedicineWithDosageAndRecord[] => medicines.every(isMedicineWithRecord);
+  const [disabledActionAll, setDisabledActionAll] = useState(false);
   const router = useRouter();
-  const [openPopover, setOpenPopover] = useState(false);
-  const [openDateTimePicker, setOpenDateTimePicker] = useState(false);
+  const intakeDate = addMinutes(
+    startOfDay(
+      medicineRecordType !== 'pending'
+        ? (medicinesWithDosage as MedicineWithDosageAndRecord[])[0].record
+            .actualIntakeDate
+        : currentDate,
+    ),
+    intakeTime,
+  );
   const values = useMemo(
     () => ({
-      intakeDate: initialIntakeDate,
-      medicines: medicines.map(({ dosage, medicine }, i) => {
+      intakeDate,
+      medicines: medicinesWithDosage.map(({ dosage, medicine }, i) => {
         let medicineRecordId: number | undefined;
-        const med = medicines[i];
+        const med = medicinesWithDosage[i];
         if (isMedicineWithRecord(med)) {
           medicineRecordId = med.record.id;
         }
@@ -64,7 +59,7 @@ export default function MedicineRecordItem({
         };
       }),
     }),
-    [time, medicines],
+    [intakeDate, medicinesWithDosage],
   );
   const formMethods = useDefaultForm<MedicineRecordForm>({
     resolver: zodResolver(medicineRecordFormSchema),
@@ -77,86 +72,20 @@ export default function MedicineRecordItem({
     values,
   });
   const {
-    control,
     handleSubmit,
-    formState: { isDirty, errors },
+    formState: { isSubmitting },
   } = formMethods;
-  const { fields } = useFieldArray({ control, name: 'medicines' });
 
-  const closePopover = () => {
-    setOpenPopover(false);
-  };
-  const onSubmitCompleteOrSkip = async ({
-    data,
-    type,
-  }: {
-    data: MedicineRecordForm;
-    type: 'complete' | 'skip';
-  }) => {
-    const { intakeDate, medicines } = data;
-    const selectedMedicines = medicines.filter((medicine) => medicine.isSelected);
-
-    await fetcher('/api/medicineRecords', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        scheduledIntakeDate: currentDate,
-        scheduledIntakeTime: time,
-        actualIntakeTime: convertMinutesAndDate(intakeDate),
-        actualIntakeDate: startOfDay(intakeDate),
-        medicines: selectedMedicines,
-        isCompleted: type === 'complete',
-        isSkipped: type === 'skip',
-        isIntakeTimeScheduled: true,
-      }),
-    });
-
-    closePopover();
-    router.refresh();
-  };
-
-  const onSubmitUndo = async ({ medicines }: MedicineRecordForm) => {
-    const selectedMedicines = medicines.filter((medicine) => medicine.isSelected);
-
-    for (const medicine of selectedMedicines) {
-      if (medicine.medicineRecordId) {
-        await fetcher(`/api/medicineRecords/${medicine.medicineRecordId}`, {
-          method: 'DELETE',
-        });
-      }
-    }
-
-    closePopover();
-    router.refresh();
-  };
-  const onSubmitEdit = async ({ medicines }: MedicineRecordForm) => {
-    const selectedMedicines = medicines.filter((medicine) => medicine.isSelected);
-
-    for (const medicine of selectedMedicines) {
-      if (medicine.medicineRecordId) {
-        await fetcher(`/api/medicineRecords/${medicine.medicineRecordId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            actualIntakeTime: convertMinutesAndDate(currentDate),
-            actualIntakeDate: startOfDay(currentDate),
-            dosage: medicine.dosage,
-          }),
-        });
-      }
-    }
-
-    closePopover();
-    router.refresh();
-  };
   const onSubmitCompleteAll = async ({ medicines }: MedicineRecordForm) => {
+    setDisabledActionAll(true);
+    if (isSubmitting || disabledActionAll) return;
     await fetcher('/api/medicineRecords', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         scheduledIntakeDate: currentDate,
-        scheduledIntakeTime: time,
-        actualIntakeTime: time,
+        scheduledIntakeTime: intakeTime,
+        actualIntakeTime: intakeTime,
         actualIntakeDate: currentDate,
         medicines,
         isCompleted: true,
@@ -167,100 +96,142 @@ export default function MedicineRecordItem({
 
     router.refresh();
   };
+  const onSubmitCancelAll = async ({ medicines }: MedicineRecordForm) => {
+    setDisabledActionAll(true);
+    if (isSubmitting || disabledActionAll) return;
+    for (const medicine of medicines) {
+      if (medicine.medicineRecordId) {
+        await fetcher(`/api/medicineRecords/${medicine.medicineRecordId}`, {
+          method: 'DELETE',
+        });
+      }
+    }
+
+    router.refresh();
+  };
+  const getMedicineStatus = useCallback(():
+    | 'overdue'
+    | 'near-expiry'
+    | 'completed'
+    | 'future' => {
+    const now = new Date();
+    const currDate = addMinutes(startOfDay(currentDate), intakeTime);
+    const difference = differenceInMinutes(currDate, now);
+
+    if (isBefore(currDate, now) && medicineRecordType === 'pending') {
+      return 'overdue';
+    } else if (difference >= 0 && difference <= 60 && medicineRecordType === 'pending') {
+      return 'near-expiry';
+    } else if (medicineRecordType !== 'pending') {
+      return 'completed';
+    } else {
+      return 'future';
+    }
+  }, [intakeTime, currentDate, medicineRecordType]);
+
+  const medicineStatus = getMedicineStatus();
+
+  const getItemStatusClassName = useCallback(() => {
+    switch (medicineStatus) {
+      case 'overdue':
+        return styles.overdue;
+      case 'near-expiry':
+        return styles.nearExpiry;
+      case 'completed':
+        return styles.completed;
+      case 'future':
+        return '';
+    }
+  }, [medicineStatus]);
+
+  const getActionAllButtonClassName = () => {
+    switch (medicineRecordType) {
+      case 'completed':
+        return styles.actionAllButtonCompleted;
+      case 'skipped':
+        return styles.actionAllButtonSkipped;
+      case 'pending':
+        return '';
+    }
+  };
 
   return (
     <FormProvider {...formMethods}>
-      <div>
+      <div
+        className={`${styles.itemContainer} ${getItemStatusClassName()} ${medicineRecordType === 'skipped' ? styles.itemSkipped : ''}`}
+      >
         <button
           type='button'
-          onClick={handleSubmit(onSubmitCompleteAll)}
+          className={`${styles.actionAllButton} ${getActionAllButtonClassName()}`}
+          onClick={() => {
+            if (medicineRecordType === 'pending') {
+              handleSubmit(onSubmitCompleteAll)();
+            } else {
+              handleSubmit(onSubmitCancelAll)();
+            }
+          }}
+          disabled={disabledActionAll}
         >
-          <Done />
+          {isSubmitting ? (
+            <Spinner
+              className={`${styles.actionAllButtonSpinner} ${medicineRecordType !== 'pending' ? styles.actionAllButtonCompletedOrSkippedSpinner : ''}`}
+            />
+          ) : (
+            <Done />
+          )}
         </button>
+        <MedicineRecordPopover
+          intakeTime={intakeTime}
+          medicinesWithDosage={medicinesWithDosage}
+          currentDate={currentDate}
+        />
       </div>
-      <Popover
-        align='end'
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-        content={
-          <>
-            {fields.length > 0 &&
-              fields.map((field, index) => {
-                const medicineWithDosage = medicines[index];
+    </FormProvider>
+  );
+}
 
-                if (!medicineWithDosage) return null;
-                const { medicine } = medicineWithDosage;
-                const dosageErr = errors?.medicines?.[index]?.dosage?.message;
+function MedicineRecordPopover({
+  intakeTime,
+  medicinesWithDosage,
+  currentDate,
+}: {
+  intakeTime: number;
+  medicinesWithDosage: Array<MedicineWithDosage | MedicineWithDosageAndRecord>;
+  currentDate: Date;
+}) {
+  const [openPopover, setOpenPopover] = useState(false);
 
-                return (
-                  <div key={field.id}>
-                    <CheckButton<MedicineRecordForm>
-                      name={`medicines.${index}.isSelected`}
-                    />
-                    <div>{medicine.name}</div>
-                    <div>
-                      <NumberInput<MedicineRecordForm>
-                        name={`medicines.${index}.dosage` as const}
-                        max={1000}
-                        decimalPlaces={2}
-                        error={dosageErr}
-                      />
-                      {medicine.unit}
-                    </div>
-                    <br />
-                  </div>
-                );
-              })}
-            <div>時間</div>
-            <DateTimePicker open={openDateTimePicker} setOpen={setOpenDateTimePicker} />
-            {isEditMode(medicines) ? (
-              <>
-                <button type='button' onClick={handleSubmit(onSubmitUndo)}>
-                  取り消し
-                </button>
-                {isDirty ? (
-                  <button type='button' onClick={handleSubmit(onSubmitEdit)}>
-                    編集
-                  </button>
-                ) : (
-                  <div>だめ</div>
-                )}
-              </>
-            ) : (
-              <>
-                <button
-                  type='button'
-                  onClick={handleSubmit((data) =>
-                    onSubmitCompleteOrSkip({ data, type: 'skip' }),
-                  )}
-                  style={{ marginRight: 200 }}
-                >
-                  スキップ
-                </button>
-                <button
-                  type='button'
-                  onClick={handleSubmit((data) =>
-                    onSubmitCompleteOrSkip({ data, type: 'complete' }),
-                  )}
-                >
-                  服用
-                </button>
-              </>
-            )}
-          </>
-        }
-      >
-        <button type='button'>
-          <div>{format(convertMinutesAndDate(time), 'HH:mm')}</div>
-          {medicines.map(({ medicine, dosage }, i) => (
-            <div key={i}>
-              {medicine.name} {dosage}
+  return (
+    <Popover
+      align='end'
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+      drawerClassName={styles.drawer}
+      content={
+        <MedicineRecordPopoverContent
+          currentDate={currentDate}
+          setOpenPopover={setOpenPopover}
+          hasRecOrSchProps={{
+            intakeTime,
+            medicinesWithDosage,
+          }}
+        />
+      }
+    >
+      <button type='button' className={styles.itemMedicineInfoContainer}>
+        <div className={styles.time}>
+          {format(convertMinutesAndDate(intakeTime), 'HH:mm')}
+        </div>
+        {medicinesWithDosage.map(({ medicine, dosage }, i) => (
+          <div key={i} className={styles.itemMedicineContainer}>
+            <div className={styles.itemMedicineName}>{medicine.name}</div>
+            <div className={styles.itemMedicineDosage}>
+              {dosage}
               {medicine.unit}
             </div>
-          ))}
-        </button>
-      </Popover>
-      <br />
-    </FormProvider>
+          </div>
+        ))}
+      </button>
+    </Popover>
   );
 }

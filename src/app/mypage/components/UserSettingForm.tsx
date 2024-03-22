@@ -6,6 +6,7 @@ import toggleButtonStyles from '@styles/components/toggleButton.module.scss';
 import { showToast } from '@/lib/toast';
 import { PushSubscription } from '@prisma/client';
 import { useRouter } from 'next/navigation';
+import { signOut } from 'next-auth/react';
 
 export default function UserSettingForm({
   pushSubscriptions,
@@ -123,24 +124,31 @@ export default function UserSettingForm({
 
   return (
     <div>
-      <label htmlFor='notify'>通知</label>
-      <Switch.Root
-        id='notify'
-        checked={registered}
-        disabled={isSubmitting}
-        onCheckedChange={async (newValue) => {
-          if (isSubmitting) return;
-          setRegistered(newValue);
-          if (newValue) {
-            await registerSubscription();
-          } else {
-            await unregisterSubscription();
-          }
-        }}
-        className={toggleButtonStyles.root}
-      >
-        <Switch.Thumb className={toggleButtonStyles.thumb} />
-      </Switch.Root>
+      <div>
+        <label htmlFor='notify'>通知</label>
+        <Switch.Root
+          id='notify'
+          checked={registered}
+          disabled={isSubmitting}
+          onCheckedChange={async (newValue) => {
+            if (isSubmitting) return;
+            setRegistered(newValue);
+            if (newValue) {
+              await registerSubscription();
+            } else {
+              await unregisterSubscription();
+            }
+          }}
+          className={toggleButtonStyles.root}
+        >
+          <Switch.Thumb className={toggleButtonStyles.thumb} />
+        </Switch.Root>
+      </div>
+      <div>
+        <button onClick={() => signOut({ callbackUrl: '/' })} type='button'>
+          ログアウト
+        </button>
+      </div>
     </div>
   );
 }

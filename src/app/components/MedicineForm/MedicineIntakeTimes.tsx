@@ -1,23 +1,24 @@
-import { useFieldArrayFormContext } from '@/app/contexts/FieldArrayFormContext';
 import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
-import { addHours, startOfHour } from 'date-fns';
-import { useFormContext, useWatch } from 'react-hook-form';
+import { addHours, isDate, startOfHour } from 'date-fns';
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import TimePicker from '../MedicineForm/DateTimePicker/TimePicker';
 import NumberInput from '@/app/components/NumberInput';
 import { AlarmAddOutlined, Delete } from '@mui/icons-material';
 import styles from '@styles/components/medicineForm/medicineIntakeTimes.module.scss';
 import { isInvalidDate } from '@/utils/isInvalidDate';
-import inputWithLabelStyles from '@styles/components/medicineForm/input-with-label.module.scss';
+import inputWithLabelStyles from '@styles/components/inputWithLabel.module.scss';
 
 export default function MedicineIntakeTimes() {
-  const { fields, remove, append } = useFieldArrayFormContext<MedicineForm>();
   const {
     control,
     trigger,
     setValue,
     formState: { errors },
   } = useFormContext<MedicineForm>();
-
+  const { fields, remove, append } = useFieldArray({
+    control,
+    name: 'intakeTimes',
+  });
   const unit = useWatch({ control, name: 'unit' });
   const frequency = useWatch({ control, name: 'frequency' });
   const period = useWatch({ control, name: 'period' });
@@ -31,7 +32,7 @@ export default function MedicineIntakeTimes() {
     name: `intakeTimes.${fields.length - 1}.dosage` as const,
   });
   const newIntakeTime =
-    fields.length && lastIntakeTime && !isInvalidDate(lastIntakeTime)
+    fields.length && isDate(lastIntakeTime) && !isInvalidDate(lastIntakeTime)
       ? addHours(lastIntakeTime, 4)
       : addHours(startOfHour(new Date()), 1);
   const newDosage = fields.length && lastDosage ? lastDosage : 1;
@@ -43,11 +44,16 @@ export default function MedicineIntakeTimes() {
       setValue('frequency.isOddDay', true);
       setValue('frequency.onDays', `${21}`);
       setValue('frequency.offDays', `${7}`);
+      setValue('frequency.everyday.hasWeekendIntakeTimes', false);
       setValue('period', { startDate: new Date(), hasDeadline: false });
       setValue('notify', true);
       trigger(['frequency', 'period', 'notify']);
     }
-    append({ time: newIntakeTime, dosage: newDosage.toString() });
+
+    append({
+      time: newIntakeTime,
+      dosage: newDosage.toString(),
+    });
     trigger('intakeTimes');
   };
 
@@ -59,10 +65,16 @@ export default function MedicineIntakeTimes() {
       </div>
       {fields.map((item, index) => {
         const dosageErr = errors?.intakeTimes?.[index]?.dosage?.message;
+        const intakeTimeErr = errors?.intakeTimes?.[index]?.time?.message;
+
         return (
           <div key={item.id} className={styles.intakeTimeContainer}>
             <div className={styles.timePickerContainer}>
-              <TimePicker index={index} />
+              <TimePicker<MedicineForm>
+                name={`intakeTimes.${index}.time`}
+                triggerName='intakeTimes'
+                error={intakeTimeErr}
+              />
             </div>
             <div className={styles.dosageContainer}>
               <label

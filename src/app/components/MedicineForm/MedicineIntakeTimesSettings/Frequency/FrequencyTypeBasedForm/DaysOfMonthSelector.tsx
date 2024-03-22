@@ -2,12 +2,10 @@ import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import styles from '@styles/components/medicineForm/medicineIntakeTimesSettings/frequency/frequencyTypeBasedForm/daysOfMonthSelector.module.scss';
 import useErrorMessage from '@/app/hooks/useErrorMessage';
+import { useEffect } from 'react';
 
 export default function DaysOfMonthSelector() {
-  const {
-    control,
-    trigger,
-  } = useFormContext<MedicineForm>();
+  const { control, trigger, setValue } = useFormContext<MedicineForm>();
   const daysOfMonth = [...Array(31).keys()].map((i) => i + 1);
   const watchedDaysOfMonth = useWatch({ control, name: 'frequency.specificDaysOfMonth' });
   const err = useErrorMessage<MedicineForm>('frequency.specificDaysOfMonth');
@@ -22,6 +20,13 @@ export default function DaysOfMonthSelector() {
       : [...(watchedDaysOfMonth ?? []), dayOfMonth];
     return newDaysOfWeek.sort((a, b) => a - b);
   };
+
+  useEffect(() => {
+    if (watchedDaysOfMonth?.length !== 31) return;
+    setValue('frequency.type', 'EVERYDAY');
+    setValue('frequency.specificDaysOfMonth', []);
+    trigger(['frequency.type', 'frequency.specificDaysOfMonth']);
+  }, [watchedDaysOfMonth, setValue, trigger]);
 
   return (
     <>

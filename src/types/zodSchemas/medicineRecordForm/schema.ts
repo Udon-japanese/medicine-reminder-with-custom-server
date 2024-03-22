@@ -14,7 +14,6 @@ export const medicineRecordFormSchema = z.object({
     )
     .refine((medicines) => medicines.some((medicine) => medicine.isSelected), {
       message: '1つ以上の薬を選択してください',
-      path: ['medicines'],
     }),
 });
 

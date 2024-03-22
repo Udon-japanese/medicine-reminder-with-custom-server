@@ -2,7 +2,7 @@
 
 .mobile-btn {
   @include button($blue-500);
-  @include text-4xl;
+  @include text-3xl;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { convertMedicineForm } from '../utils';
 import { getUpdateMedicineData } from './utils';
 import { deleteImageByIdServer, getImageUrlByIdServer } from '../../lib/cloudinary';
+import getMedicineById from '@/app/actions/getMedicineById';
 
 type Params = { params: { medicineId: string } };
 
@@ -33,6 +34,7 @@ export async function DELETE(req: Request, { params }: Params) {
 
     const imageId = existingMedicine?.memo?.imageId;
     const imageUrl = await getImageUrlByIdServer(imageId);
+
     if (imageUrl) {
       await deleteImageByIdServer(imageId);
     }
@@ -62,23 +64,7 @@ export async function PUT(req: Request, { params }: Params) {
   try {
     const { medicineId } = params;
 
-    const existingMedicine = await prisma.medicine.findUnique({
-      where: {
-        id: medicineId,
-      },
-      include: {
-        intakeTimes: true,
-        frequency: {
-          include: {
-            oddEvenDay: true,
-            onOffDays: true,
-          },
-        },
-        period: true,
-        stock: true,
-        memo: true,
-      },
-    });
+    const existingMedicine = await getMedicineById(medicineId);
 
     if (!existingMedicine) {
       return new NextResponse('Invalid Medicine ID', { status: 400 });
@@ -93,13 +79,45 @@ export async function PUT(req: Request, { params }: Params) {
       });
     }
 
-    let imageIdData = imageId;
+    if (typeof imageId !== 'undefined' && typeof imageId !== 'string') {
+      return new NextResponse('Invalid Image ID', {
+        status: 400,
+      });
+    }
+
+    if (typeof imageIdToDelete !== 'undefined' && typeof imageIdToDelete !== 'string') {
+      return new NextResponse('Invalid Image ID to delete', {
+        status: 400,
+      });
+    }
+
+    if (imageId) {
+      const imageUrl = await getImageUrlByIdServer(imageId);
+
+      if (!imageUrl) {
+        return new NextResponse('Invalid Image ID', {
+          status: 400,
+        });
+      }
+    }
+
+    if (imageIdToDelete) {
+      const imageUrlToDelete = await getImageUrlByIdServer(imageIdToDelete);
+
+      if (!imageUrlToDelete) {
+        return new NextResponse('Invalid Image ID to delete', {
+          status: 400,
+        });
+      }
+    }
+
+    let imageIdData: string | undefined = imageId;
 
     const deleteImageUrl = await getImageUrlByIdServer(imageIdToDelete);
     if (deleteImageUrl && imageIdToDelete === existingMedicine?.memo?.imageId) {
       await deleteImageByIdServer(imageIdToDelete);
       if (imageIdToDelete === imageId) {
-        imageIdData = null;
+        imageIdData = undefined;
       }
     }
 

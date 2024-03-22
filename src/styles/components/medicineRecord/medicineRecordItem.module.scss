@@ -1,0 +1,104 @@
+@use '../button' as *;
+
+.item-container {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  border-radius: size(2);
+  box-shadow: 0 0 2px 0 rgba($black, 0.2);
+  margin: size(2) 0;
+  background-color: $white;
+  border-left: 8px solid $gray-400;
+}
+
+.item-skipped {
+  .item-medicine-info-container {
+    color: $gray-300;
+  }
+}
+
+.near-expiry {
+  border-color: $yellow-400;
+}
+
+.overdue {
+  border-color: $red-400;
+}
+
+.completed {
+  border-color: $green-500;
+}
+
+.action-all-button-spinner {
+  color: $gray-400;
+  width: size(5);
+  height: size(5);
+}
+
+.action-all-button-completed-or-skipped-spinner {
+  color: $white;
+}
+
+.action-all-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: size(14);
+  min-height: size(13);
+  height: auto;
+  background: $gray-100;
+  border-radius: size(2);
+  color: $gray-400;
+  margin: size(2);
+}
+
+.action-all-button-completed {
+  background: $blue-600;
+  color: $white;
+}
+
+.action-all-button-skipped {
+  background: $gray-400;
+  color: $white;
+}
+
+.item-medicine-info-container {
+  @include text-base;
+  padding: size(2) 0;
+  margin-left: size(1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.item-medicine-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  margin-bottom: size(2);
+  max-width: 100%;
+}
+
+.time {
+  @include text-base;
+  @include font-semibold;
+}
+
+.item-medicine-name {
+  @include line-clamp(1);
+  max-width: 100%;
+}
+
+.item-medicine-dosage {
+  @include text-xs;
+}
+
+.drawer {
+  background-color: $gray-100;
+}

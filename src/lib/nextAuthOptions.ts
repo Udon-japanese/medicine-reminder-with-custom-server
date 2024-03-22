@@ -18,6 +18,7 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   events: {
     async signIn({isNewUser, user}) {
       const existingMedicineUnits = await prisma.medicineUnit.findMany({

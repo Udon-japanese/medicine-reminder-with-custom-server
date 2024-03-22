@@ -1,18 +1,21 @@
-export const isInvalidPushSubscription = (subscription: any) => {
+export const isInvalidPushSubscription = (subscription: unknown) => {
   if (
-    subscription == null ||
-    !subscription.endpoint ||
-    typeof subscription.endpoint !== 'string' ||
-    subscription.keys == null ||
-    !subscription.keys.auth ||
-    typeof subscription.keys.auth !== 'string' ||
-    !subscription.keys.p256dh ||
-    typeof subscription.keys.p256dh !== 'string'
+    typeof subscription !== 'object' ||
+    !subscription ||
+    !('endpoint' in subscription) ||
+    typeof subscription['endpoint'] !== 'string' ||
+    !('keys' in subscription) ||
+    typeof subscription['keys'] !== 'object' ||
+    subscription['keys'] == null ||
+    !('auth' in subscription['keys']) ||
+    typeof subscription['keys']['auth'] !== 'string' ||
+    !('p256dh' in subscription['keys']) ||
+    typeof subscription['keys']['p256dh'] !== 'string'
   ) {
     return true;
   }
   try {
-    new URL(subscription.endpoint);
+    new URL(subscription['endpoint']);
   } catch (_) {
     return true;
   }

@@ -1,8 +1,8 @@
 'use client';
 import {
   LocalizationProvider,
-  DesktopDatePicker,
-  DesktopDatePickerProps,
+  DesktopDatePicker as MUIDesktopDatePicker,
+  DesktopDatePickerProps as MUIDesktopDatePickerProps,
   StaticDatePickerProps,
   StaticDatePicker,
 } from '@mui/x-date-pickers';
@@ -13,7 +13,6 @@ import useMediaQuery from '@/app/hooks/useMediaQuery';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { ja } from 'date-fns/locale/ja';
 import { format } from 'date-fns';
-import ButtonField from '../../DateTimePicker/ButtonField';
 import TextField from '../../DateTimePicker/TextField';
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import styles from '@styles/components/dateTimePicker.module.scss';
@@ -60,14 +59,14 @@ export default function DatePicker({
             dateFormats={{ year: 'yyyy年', monthAndYear: 'yyyy年M月' }}
           >
             {isMd ? (
-              <CustomDesktopDatePicker
+              <DesktopDatePicker
                 open={open}
                 setOpen={setOpen}
                 {...fieldProps}
                 inputRef={ref}
               />
             ) : (
-              <CustomMobileDatePicker
+              <MobileDatePicker
                 open={open}
                 setOpen={setOpen}
                 {...fieldProps}
@@ -86,8 +85,8 @@ export default function DatePicker({
   );
 }
 
-function CustomDesktopDatePicker(
-  props: DesktopDatePickerProps<Date> & {
+function DesktopDatePicker(
+  props: MUIDesktopDatePickerProps<Date> & {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
   },
@@ -100,7 +99,7 @@ function CustomDesktopDatePicker(
   const { open, setOpen, ...other } = props;
 
   return (
-    <DesktopDatePicker
+    <MUIDesktopDatePicker
       open={open}
       onOpen={() => setOpen(true)}
       onClose={() => setOpen(false)}
@@ -123,7 +122,7 @@ function CustomDesktopDatePicker(
   );
 }
 
-function CustomMobileDatePicker(
+function MobileDatePicker(
   props: StaticDatePickerProps<Date> & {
     open: boolean;
     setOpen: Dispatch<SetStateAction<boolean>>;
@@ -151,6 +150,7 @@ function CustomMobileDatePicker(
           }}
           slotProps={{
             toolbar: { toolbarFormat: 'yyyy年M月d日' },
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             actionBar: { setOpen } as any,
           }}
           {...other}
