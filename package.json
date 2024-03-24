@@ -8,7 +8,7 @@
     "dev:scss": "typed-scss-modules \"src/**/*.scss\" -w",
     "typegen:scss": "typed-scss-modules \"src/**/*.scss\"",
     "build": "run-p build:next build:server",
-    "build:next": "prisma generate && prisma db push && next build",
+    "build:next": "prisma generate && prisma db push && NODE_OPTIONS='--max-old-space-size=256' next build",
     "build:server": "tsc -p tsconfig.server.json",
     "start": "cross-env NODE_ENV=production ts-node -r tsconfig-paths/register src/server/index.ts",
     "lint": "next lint"
