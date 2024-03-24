@@ -20,6 +20,7 @@ const prismadb_1 = require("@/lib/prismadb");
 const date_fns_1 = require("date-fns");
 const isIntakeDate_1 = require("@/utils/isIntakeDate");
 const cloudinary_1 = require("@/app/api/lib/cloudinary");
+const getCurrentDateIntakeTimes_1 = require("@/utils/getCurrentDateIntakeTimes");
 const dev = process.env.NODE_ENV !== 'production';
 const app = (0, next_1.default)({ dev });
 const handle = app.getRequestHandler();
@@ -51,16 +52,36 @@ const handle = app.getRequestHandler();
                         },
                     },
                     notify: true,
-                    intakeTimes: {
-                        some: {
-                            time: currentTimeInMinutes,
+                    OR: [
+                        {
+                            intakeTimes: {
+                                some: {
+                                    time: currentTimeInMinutes,
+                                },
+                            },
                         },
-                    },
+                        {
+                            frequency: {
+                                everyday: {
+                                    weekendIntakeTimes: {
+                                        some: {
+                                            time: currentTimeInMinutes,
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ],
                 },
                 include: {
                     intakeTimes: true,
                     frequency: {
                         include: {
+                            everyday: {
+                                include: {
+                                    weekendIntakeTimes: true,
+                                },
+                            },
                             oddEvenDay: true,
                             onOffDays: true,
                         },
@@ -71,16 +92,32 @@ const handle = app.getRequestHandler();
                 },
             });
             const currentMedicines = meds.filter((m) => {
+                var _a, _b, _c, _d;
                 const { frequency, period } = m;
                 if (!(frequency && (period === null || period === void 0 ? void 0 : period.startDate)))
                     return false;
+                if (frequency.type === 'EVERYDAY' && ((_b = (_a = frequency.everyday) === null || _a === void 0 ? void 0 : _a.weekends) === null || _b === void 0 ? void 0 : _b.length) && ((_d = (_c = frequency.everyday) === null || _c === void 0 ? void 0 : _c.weekendIntakeTimes) === null || _d === void 0 ? void 0 : _d.length)) {
+                    const { weekends, weekendIntakeTimes } = frequency.everyday;
+                    const dayOfWeek = (0, date_fns_1.format)(currentDate, 'EEEE').toUpperCase();
+                    if (weekends.includes(dayOfWeek)) {
+                        if (weekendIntakeTimes.some((t) => t.time === currentTimeInMinutes)) {
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    }
+                    else {
+                        return false;
+                    }
+                }
                 return (0, isIntakeDate_1.isIntakeDate)({ frequency, currentDate, startDate: period === null || period === void 0 ? void 0 : period.startDate });
             });
             const medicinesToUpdate = currentMedicines
                 .map((m) => {
                 var _a, _b, _c;
                 const stockQuantity = (_a = m.stock) === null || _a === void 0 ? void 0 : _a.quantity;
-                const dosage = (_c = (_b = m.intakeTimes) === null || _b === void 0 ? void 0 : _b.find((i) => i.time === currentTimeInMinutes)) === null || _c === void 0 ? void 0 : _c.dosage;
+                const dosage = (_c = (_b = (0, getCurrentDateIntakeTimes_1.getCurrentDateIntakeTimes)({ medicine: m, currentDate })) === null || _b === void 0 ? void 0 : _b.find((i) => i.time === currentTimeInMinutes)) === null || _c === void 0 ? void 0 : _c.dosage;
                 return Object.assign(Object.assign({}, m), { stockQuantity: stockQuantity ? stockQuantity : NaN, dosage: dosage ? dosage : NaN });
             })
                 .filter((m) => {

@@ -1,6 +1,7 @@
 import getMedicineById from '@/app/actions/getMedicineById';
 import getMedicineRecords from '@/app/actions/getMedicineRecords';
 import getMedicines from '@/app/actions/getMedicines';
+import { MedicineRecord } from '@prisma/client';
 
 export default async function getExistingMedicinesWithRecords() {
   const medicines = await getMedicines();
@@ -14,6 +15,6 @@ export default async function getExistingMedicinesWithRecords() {
 
   return {
     medicines,
-    medicineRecords: medicineRecords.filter((m) => m),
+    medicineRecords: medicineRecords.filter((m): m is MedicineRecord => m !== null),
   };
 }
