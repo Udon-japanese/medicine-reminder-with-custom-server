@@ -3,6 +3,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prismadb';
 import { NextAuthOptions } from 'next-auth';
 import { Adapter } from 'next-auth/adapters';
+import { redirect } from 'next/navigation';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
@@ -20,11 +21,11 @@ export const authOptions: NextAuthOptions = {
   ],
   secret: process.env.NEXTAUTH_SECRET,
   events: {
-    async signIn({isNewUser, user}) {
+    async signIn({ isNewUser, user }) {
       const existingMedicineUnits = await prisma.medicineUnit.findMany({
         where: {
           userId: user.id,
-        }
+        },
       });
 
       if (isNewUser || existingMedicineUnits.length === 0) {
@@ -50,10 +51,15 @@ export const authOptions: NextAuthOptions = {
           data,
         });
       }
+
+      if (isNewUser) redirect('/medicines');
     },
   },
   session: {
     strategy: 'jwt',
     maxAge: 60 * 60 * 24 * 30,
+  },
+  pages: {
+    signIn: '/login',
   },
 };

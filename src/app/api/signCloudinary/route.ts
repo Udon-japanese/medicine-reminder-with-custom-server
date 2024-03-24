@@ -1,6 +1,5 @@
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import cloudinary from '../lib/cloudinary';
-import { NextResponse } from 'next/server';
 
 const cloudName = cloudinary.config().cloud_name!;
 const apiSecret = cloudinary.config().api_secret!;
@@ -11,7 +10,7 @@ export async function POST() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   const timestamp = Math.round(new Date().getTime() / 1000);

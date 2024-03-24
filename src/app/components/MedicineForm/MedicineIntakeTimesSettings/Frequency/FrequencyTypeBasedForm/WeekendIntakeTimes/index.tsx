@@ -1,23 +1,24 @@
 import { MedicineForm } from '@/types/zodSchemas/medicineForm/schema';
 import { addHours, isDate, startOfHour } from 'date-fns';
 import {
-  Controller,
   get,
   useFieldArray,
   useFormContext,
   useWatch,
 } from 'react-hook-form';
-import TimePicker from '../../../DateTimePicker/TimePicker';
+import TimePicker from '../../../../DateTimePicker/TimePicker';
 import NumberInput from '@/app/components/NumberInput';
-import { AlarmAddOutlined, Close, Delete, Done } from '@mui/icons-material';
-import styles from '@styles/components/medicineForm/medicineIntakeTimes.module.scss';
+import { AlarmAddOutlined, Delete } from '@mui/icons-material';
+import intakeTimesStyles from '@styles/components/medicineForm/medicineIntakeTimes.module.scss';
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import inputWithLabelStyles from '@styles/components/inputWithLabel.module.scss';
 import { useEffect, useState } from 'react';
-import Modal from '@/app/components/Modal';
-import { DayOfWeek } from '@prisma/client';
-import { getDayOfWeekText } from '@/utils/getMedicineText';
+import {
+  getConvertedSpecificDaysOfWeek,
+} from '@/utils/getMedicineText';
 import SwitchButton from '@/app/components/SwitchButton';
+import styles from '@styles/components/medicineForm/medicineIntakeTimesSettings/frequency/frequencyTypeBasedForm/weekendIntakeTimes/index.module.scss';
+import SelectWeekendsModal from './SelectWeekendsModal';
 
 export default function WeekendIntakeTimes() {
   const {
@@ -36,7 +37,6 @@ export default function WeekendIntakeTimes() {
     control,
     name: 'frequency.everyday.weekendIntakeTimes',
   });
-  const daysOfWeek = Object.values(DayOfWeek);
   const weekends = useWatch({ control, name: 'frequency.everyday.weekends' });
   const unit = useWatch({ control, name: 'unit' });
   const hasWeekendIntakeTimes = useWatch({
@@ -58,7 +58,7 @@ export default function WeekendIntakeTimes() {
       ? addHours(lastWeekendIntakeTime, 4)
       : addHours(startOfHour(new Date()), 1);
   const newDosage = fields.length && lastWeekendDosage ? lastWeekendDosage : 1;
-  const [showWeekendsSettingModal, setShowWeekendsSettingModal] = useState(false);
+  const [showSelectWeekendsModal, setShowSelectWeekendsModal] = useState(false);
 
   const handleClickAddIntakeTime = () => {
     append({ time: newIntakeTime, dosage: newDosage.toString() });
@@ -72,22 +72,6 @@ export default function WeekendIntakeTimes() {
 
     trigger('frequency');
   };
-  const handleDayOfWeekClick = (dayOfWeek: DayOfWeek) => {
-    const newDaysOfWeek = weekends?.includes(dayOfWeek)
-      ? weekends?.filter((d: DayOfWeek) => d !== dayOfWeek)
-      : [...(weekends ?? []), dayOfWeek];
-    return newDaysOfWeek.sort((a, b) => daysOfWeek.indexOf(a) - daysOfWeek.indexOf(b));
-  };
-
-  const onCloseWeekendsSettingModal = () => {
-    setShowWeekendsSettingModal(false);
-
-    if (weekends?.length === 7 || weekends?.length === 0) {
-      setValue('frequency.everyday.hasWeekendIntakeTimes', false);
-      setValue('frequency.everyday.weekends', ['SATURDAY', 'SUNDAY']);
-      trigger('frequency');
-    }
-  };
 
   useEffect(() => {
     if (weekendIntakeTimes?.length === 0) {
@@ -98,54 +82,28 @@ export default function WeekendIntakeTimes() {
 
   return (
     <>
-      <SwitchButton<MedicineForm>
-        checked={hasWeekendIntakeTimes}
-        name='frequency.everyday.hasWeekendIntakeTimes'
-        onCheckedChange={handleToggleWeekendIntakeTimesChange}
-      />
-      <Modal
-        showModal={showWeekendsSettingModal}
-        setShowModal={setShowWeekendsSettingModal}
-        onClose={onCloseWeekendsSettingModal}
-        fullScreenOnMobile
-      >
-        <button type='button' onClick={onCloseWeekendsSettingModal}>
-          <Close />
-        </button>
-        <Controller
-          name='frequency.everyday.weekends'
-          control={control}
-          render={({ field: { onChange } }) => (
-            <>
-              {daysOfWeek.map((dayOfWeek, index) => (
-                <div key={index}>
-                  <button
-                    type='button'
-                    onClick={() => {
-                      onChange(handleDayOfWeekClick(dayOfWeek));
-                      trigger('frequency.specificDaysOfWeek');
-                    }}
-                  >
-                    {getDayOfWeekText(dayOfWeek)}
-                    {weekends?.includes(dayOfWeek) && <Done />}
-                  </button>
-                </div>
-              ))}
-            </>
-          )}
+      <label className={styles.enableWeekendIntakeTimes}>
+        <div>週末に別の服用時間を追加</div>
+        <SwitchButton<MedicineForm>
+          checked={hasWeekendIntakeTimes}
+          name='frequency.everyday.hasWeekendIntakeTimes'
+          onCheckedChange={handleToggleWeekendIntakeTimesChange}
         />
-      </Modal>
+      </label>
+      <SelectWeekendsModal showModal={showSelectWeekendsModal} setShowModal={setShowSelectWeekendsModal} />
       {hasWeekendIntakeTimes && (
-        <div className={styles.container}>
-          <button type='button' onClick={() => setShowWeekendsSettingModal(true)}>
-            編集
-          </button>
-          <div className={styles.labelContainer}>
+        <div className={intakeTimesStyles.container}>
+          <div className={styles.headerContainer}>
             {weekends?.length > 0 && (
-              <div>{weekends.map((w) => getDayOfWeekText(w))}</div>
+              <div>{getConvertedSpecificDaysOfWeek(weekends)}</div>
             )}
-            <div className={styles.timeLabel}>時間</div>
-            {fields.length > 0 && <div className={styles.dosageLabel}>服用量</div>}
+            <button
+              className={styles.editWeekendsButton}
+              type='button'
+              onClick={() => setShowSelectWeekendsModal(true)}
+            >
+              編集
+            </button>
           </div>
           {fields.map((item, index) => {
             const dosageErr = get(
@@ -158,15 +116,15 @@ export default function WeekendIntakeTimes() {
             )?.message;
 
             return (
-              <div key={item.id} className={styles.intakeTimeContainer}>
-                <div className={styles.timePickerContainer}>
+              <div key={item.id} className={intakeTimesStyles.intakeTimeContainer}>
+                <div className={intakeTimesStyles.timePickerContainer}>
                   <TimePicker<MedicineForm>
                     name={`frequency.everyday.weekendIntakeTimes.${index}.time`}
                     triggerName='frequency.everyday.weekendIntakeTimes'
                     error={intakeTimeErr}
                   />
                 </div>
-                <div className={styles.dosageContainer}>
+                <div className={intakeTimesStyles.dosageContainer}>
                   <label
                     className={`${inputWithLabelStyles.inputContainer} ${dosageErr ? inputWithLabelStyles.isInvalid : inputWithLabelStyles.isValid}`}
                   >
@@ -186,13 +144,13 @@ export default function WeekendIntakeTimes() {
                   </label>
                   {dosageErr && (
                     <div className={inputWithLabelStyles.errContainer}>
-                      <div className={styles.errMessage}>{dosageErr}</div>
+                      <div className={intakeTimesStyles.errMessage}>{dosageErr}</div>
                     </div>
                   )}
                 </div>
                 <button
                   type='button'
-                  className={styles.deleteIntakeTimeBtn}
+                  className={intakeTimesStyles.deleteIntakeTimeBtn}
                   onClick={() => {
                     remove(index);
                     trigger('frequency.everyday.weekendIntakeTimes');
@@ -206,10 +164,13 @@ export default function WeekendIntakeTimes() {
           <div>
             <button
               type='button'
-              className={styles.addIntakeTimeBtn}
+              className={intakeTimesStyles.addIntakeTimeBtn}
               onClick={handleClickAddIntakeTime}
             >
-              <AlarmAddOutlined fontSize='small' className={styles.addIntakeTimeIcon} />
+              <AlarmAddOutlined
+                fontSize='small'
+                className={intakeTimesStyles.addIntakeTimeIcon}
+              />
               時間を追加
             </button>
           </div>

@@ -1,0 +1,19 @@
+@use '../../list-item' as *;
+
+.container {
+  position: relative;
+  height: 100vh;
+  background: $gray-100;
+
+  @include mq() {
+    height: 100%;
+  }
+}
+
+.select-day-of-week-button-container {
+  padding: size(2) size(3);
+}
+
+.select-day-of-week-button {
+  @include list-item;
+}

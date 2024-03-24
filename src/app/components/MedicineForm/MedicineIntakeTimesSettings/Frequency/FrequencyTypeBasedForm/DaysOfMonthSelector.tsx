@@ -22,7 +22,7 @@ export default function DaysOfMonthSelector() {
   };
 
   useEffect(() => {
-    if (watchedDaysOfMonth?.length !== 31) return;
+    if (!watchedDaysOfMonth || watchedDaysOfMonth?.length < 31) return;
     setValue('frequency.type', 'EVERYDAY');
     setValue('frequency.specificDaysOfMonth', []);
     trigger(['frequency.type', 'frequency.specificDaysOfMonth']);

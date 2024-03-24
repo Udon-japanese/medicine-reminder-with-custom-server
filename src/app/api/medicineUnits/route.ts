@@ -3,13 +3,12 @@ import getMedicineUnits from '@/app/actions/getMedicineUnits';
 import { prisma } from '@/lib/prismadb';
 import { medicineUnitFormSchema } from '@/types/zodSchemas/medicineForm/schema';
 import { MedicineUnit, Prisma } from '@prisma/client';
-import { NextResponse } from 'next/server';
 
 export async function GET() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
@@ -19,10 +18,10 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(medicineUnits);
+    return Response.json(medicineUnits);
   } catch (err) {
     console.error(err);
-    return new NextResponse('Internal Server Error: Failed to process the request', {
+    return new Response(JSON.stringify('Internal Server Error: Failed to process the request'), {
       status: 500,
     });
   }
@@ -32,7 +31,7 @@ export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
@@ -41,29 +40,29 @@ export async function POST(req: Request) {
     const body = await req.json();
     const validation = medicineUnitFormSchema.safeParse(body);
     if (!validation.success) {
-      return NextResponse.json(validation.error.errors, {
+      return Response.json(validation.error.errors, {
         status: 400,
       });
     }
 
     const { units: newUnits } = validation.data;
 
-    newUnits.filter(
-      (unit) => !uniqueCurrentUnits.includes(unit.unit),
-    );
+    newUnits.filter((unit) => !uniqueCurrentUnits.includes(unit.unit));
 
-    const data = newUnits.map((unit): Prisma.MedicineUnitCreateManyInput => ({
-      unit: unit.unit,
-      userId: currentUser.id,
-    }));
+    const data = newUnits.map(
+      (unit): Prisma.MedicineUnitCreateManyInput => ({
+        unit: unit.unit,
+        userId: currentUser.id,
+      }),
+    );
     const addedMedUnits = await prisma.medicineUnit.createMany({
       data,
     });
 
-    return NextResponse.json(addedMedUnits);
+    return Response.json(addedMedUnits);
   } catch (err) {
     console.error(err);
-    return new NextResponse('Internal Server Error: Failed to process the request', {
+    return new Response(JSON.stringify('Internal Server Error: Failed to process the request'), {
       status: 500,
     });
   }
@@ -73,7 +72,7 @@ export async function DELETE(req: Request) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
@@ -83,7 +82,7 @@ export async function DELETE(req: Request) {
     const currentUnits = await getMedicineUnits();
 
     if (currentUnits.length <= idsToDelete.length) {
-      return new NextResponse('Cannot delete all units. At least one unit must remain.', {
+      return new Response(JSON.stringify('Cannot delete all units. At least one unit must remain.'), {
         status: 400,
       });
     }
@@ -96,10 +95,10 @@ export async function DELETE(req: Request) {
       },
     });
 
-    return NextResponse.json({ success: true });
+    return Response.json({ success: true });
   } catch (err) {
     console.error(err);
-    return new NextResponse('Internal Server Error: Failed to process the request', {
+    return new Response(JSON.stringify('Internal Server Error: Failed to process the request'), {
       status: 500,
     });
   }

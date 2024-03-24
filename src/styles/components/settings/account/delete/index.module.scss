@@ -1,0 +1,140 @@
+@use '../../../button' as *;
+
+.container {
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+.warning-container {
+  height: calc(100% - size(20));
+  padding: 0 size(6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.warning-icon-wrapper {
+  @include text-8xl;
+  width: size(30);
+  height: size(30);
+  padding-bottom: size(3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: $red-200;
+  color: $red-600;
+  border-radius: 9999px;
+}
+
+.header {
+  @include font-semibold;
+  margin-top: size(4);
+}
+
+.description {
+  @include text-sm;
+  margin-top: size(3);
+}
+
+.delete-account-button {
+  @include text-sm;
+  color: $red-600;
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.agree-and-delete-button-container {
+  padding: 0 size(6);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: size(3);
+  position: absolute;
+  bottom: size(5);
+}
+
+.agree-container {
+  @include text-xs;
+  display: flex;
+  flex-direction: row;
+  gap: size(2);
+  align-items: center;
+}
+
+.agree-checkbox {
+  @include text-xl;
+  flex-shrink: 0;
+  padding-bottom: size(1.5);
+  width: size(5);
+  height: size(5);
+  border-radius: size(1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid $black;
+}
+
+.agree-checkbox-checked {
+  background-color: $blue-600;
+  color: $white;
+  border: none;
+}
+
+
+.succeed-container {
+  height: 100%;
+  width: 100%;
+  padding: 0 size(6);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.succeed-icon-wrapper {
+  @include text-8xl;
+  width: size(30);
+  height: size(30);
+  padding-bottom: size(2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: $green-200;
+  color: $green-500;
+  border-radius: 9999px;
+}
+
+.succeed-header {
+  @include font-semibold;
+  margin-top: size(4);
+}
+
+.succeed-description {
+  @include text-sm;
+  margin-top: size(3);
+}
+
+.create-account-button {
+  @include button($blue-600);
+  margin-top: size(7);
+  padding: size(2) size(4);
+  color: $white;
+}
+
+.desktop-liner-progress {
+  display: none;
+
+  @include mq() {
+    display: block;
+    width: 100%;
+    top: 0;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}

@@ -7,6 +7,8 @@ import { AlarmAddOutlined, Delete } from '@mui/icons-material';
 import styles from '@styles/components/medicineForm/medicineIntakeTimes.module.scss';
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import inputWithLabelStyles from '@styles/components/inputWithLabel.module.scss';
+import { DayOfWeek } from '@prisma/client';
+import { getConvertedSpecificDaysOfWeek } from '@/utils/getMedicineText';
 
 export default function MedicineIntakeTimes() {
   const {
@@ -23,6 +25,8 @@ export default function MedicineIntakeTimes() {
   const frequency = useWatch({ control, name: 'frequency' });
   const period = useWatch({ control, name: 'period' });
   const notify = useWatch({ control, name: 'notify' });
+  const weekends = useWatch({ control, name: 'frequency.everyday.weekends' });
+  const hasWeekendIntakeTimes = useWatch({control, name: 'frequency.everyday.hasWeekendIntakeTimes'});
   const lastIntakeTime = useWatch({
     control,
     name: `intakeTimes.${fields.length - 1}.time` as const,
@@ -49,20 +53,23 @@ export default function MedicineIntakeTimes() {
       setValue('notify', true);
       trigger(['frequency', 'period', 'notify']);
     }
-
+    
     append({
       time: newIntakeTime,
       dosage: newDosage.toString(),
     });
     trigger('intakeTimes');
   };
+  const getWeekdays = () => {
+    if (!weekends?.length) return;
+    const weekdays = Object.values(DayOfWeek).filter((day) => !weekends.includes(day));
+    return getConvertedSpecificDaysOfWeek(weekdays);
+  }
+  const weekdays = getWeekdays();
 
   return (
     <div className={styles.container}>
-      <div className={styles.labelContainer}>
-        <div className={styles.timeLabel}>時間</div>
-        {fields.length > 0 && <div className={styles.dosageLabel}>服用量</div>}
-      </div>
+      {weekdays && hasWeekendIntakeTimes && <div>{weekdays}</div>}
       {fields.map((item, index) => {
         const dosageErr = errors?.intakeTimes?.[index]?.dosage?.message;
         const intakeTimeErr = errors?.intakeTimes?.[index]?.time?.message;

@@ -1,0 +1,11 @@
+.delete-account-button-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: size(10);
+}
+
+.delete-account-button {
+  @include text-sm;
+  color: $red-500;
+}

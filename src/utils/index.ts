@@ -19,7 +19,3 @@ export async function fetcher<JSON = unknown>(
 
   return res.json();
 }
-
-export const convertSnakeCaseToCamelCase = (str: string) => {
-  return str.toLowerCase().replace(/_(.)/g, (_, group1) => group1.toUpperCase());
-};

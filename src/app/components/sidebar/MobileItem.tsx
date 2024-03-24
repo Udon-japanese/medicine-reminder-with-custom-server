@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import mobileItemStyles from '@styles/components/sidebar/mobileItem.module.scss';
+import styles from '@styles/components/sidebar/mobileItem.module.scss';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 
 export default function MobileItem({
@@ -17,12 +17,12 @@ export default function MobileItem({
   active: boolean;
 }) {
   return (
-    <Link href={href} className={mobileItemStyles.item}>
+    <Link href={href} className={styles.item}>
       <div>
         {active ? activeIcon : inactiveIcon}
         <VisuallyHidden.Root>{label}</VisuallyHidden.Root>
       </div>
-      <div className={mobileItemStyles.label}>{label}</div>
+      <div className={styles.label}>{label}</div>
     </Link>
   );
 }

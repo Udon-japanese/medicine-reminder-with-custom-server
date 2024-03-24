@@ -64,7 +64,7 @@ export default function Period() {
                     name='period.days'
                     max={1000}
                     min={1}
-                    placeholder='1~1000'
+                    placeholder='1～1000'
                     error={daysErr}
                     disableStyles
                     displayErrMessage={false}
@@ -74,7 +74,7 @@ export default function Period() {
                     <div className={inputWithLabelStyles.label}>
                       {format(
                         addDays(period.startDate, Number(period?.days)),
-                        '~ yyyy/M/d',
+                        '～ yyyy/M/d',
                       )}
                     </div>
                   )}

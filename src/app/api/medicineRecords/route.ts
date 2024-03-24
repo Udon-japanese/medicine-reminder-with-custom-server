@@ -4,14 +4,14 @@ import { medicineRecordFormSchema } from '@/types/zodSchemas/medicineRecordForm/
 import { isInvalidDate } from '@/utils/isInvalidDate';
 import { Prisma } from '@prisma/client';
 import { isDate } from 'date-fns';
-import { NextResponse } from 'next/server';
+
 import { isInValidIntakeTime } from './utils';
 
 export async function GET() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
@@ -21,10 +21,10 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(medicineUnits);
+    return Response.json(medicineUnits);
   } catch (err) {
     console.error(err);
-    return new NextResponse('Internal Server Error: Failed to process the request', {
+    return new Response(JSON.stringify('Internal Server Error'), {
       status: 500,
     });
   }
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
@@ -57,44 +57,44 @@ export async function POST(req: Request) {
     });
 
     if (!validation.success) {
-      return NextResponse.json(validation.error.errors, {
+      return Response.json(validation.error.errors, {
         status: 400,
       });
     }
 
     if (!isBoolean(isIntakeTimeScheduled)) {
-      return new NextResponse('Invalid isIntakeTimeScheduled', { status: 400 });
+      return new Response(JSON.stringify('Invalid isIntakeTimeScheduled'), { status: 400 });
     }
 
     if (isIntakeTimeScheduled) {
       if (isInValidIntakeTime(scheduledIntakeTime)) {
-        return new NextResponse('Invalid scheduledIntakeTime', { status: 400 });
+        return new Response(JSON.stringify('Invalid scheduledIntakeTime'), { status: 400 });
       }
 
       const scheduledIntakeDateObj = new Date(scheduledIntakeDate);
       if (!isDate(scheduledIntakeDateObj) || isInvalidDate(scheduledIntakeDateObj)) {
-        return new NextResponse('Invalid scheduledIntakeDate', { status: 400 });
+        return new Response(JSON.stringify('Invalid scheduledIntakeDate'), { status: 400 });
       }
 
       if (!(isBoolean(isCompleted) && isBoolean(isSkipped))) {
-        return new NextResponse('Invalid medicine status', { status: 400 });
+        return new Response(JSON.stringify('Invalid medicine status'), { status: 400 });
       }
 
       if ((isCompleted && isSkipped) || !(isCompleted || isSkipped)) {
-        return new NextResponse('Invalid medicine status', { status: 400 });
+        return new Response(JSON.stringify('Invalid medicine status'), { status: 400 });
       }
     } else {
       if (!isBoolean(isCompleted)) {
-        return new NextResponse('Invalid isCompleted', { status: 400 });
+        return new Response(JSON.stringify('Invalid isCompleted'), { status: 400 });
       }
 
       if (!isCompleted) {
-        return new NextResponse('Invalid isCompleted', { status: 400 });
+        return new Response(JSON.stringify('Invalid isCompleted'), { status: 400 });
       }
     }
 
     if (isInValidIntakeTime(actualIntakeTime)) {
-      return new NextResponse('Invalid actualIntakeTime', { status: 400 });
+      return new Response('Invalid actualIntakeTime', { status: 400 });
     }
 
     const { intakeDate: actualIntakeDate, medicines } = validation.data;
@@ -176,10 +176,10 @@ export async function POST(req: Request) {
       data,
     });
 
-    return NextResponse.json(addedMedRecords);
+    return Response.json(addedMedRecords);
   } catch (err) {
     console.error(err);
-    return new NextResponse('Internal Server Error: Failed to process the request', {
+    return new Response(JSON.stringify('Internal Server Error'), {
       status: 500,
     });
   }

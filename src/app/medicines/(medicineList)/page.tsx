@@ -1,6 +1,6 @@
-import MedicineList from './components/MedicineList';
-import getMedicines from '../actions/getMedicines';
-import { getImageUrlByIdServer } from '../api/lib/cloudinary';
+import MedicineList from '../components/MedicineList';
+import getMedicines from '../../actions/getMedicines';
+import { getImageUrlByIdServer } from '../../api/lib/cloudinary';
 import { MedicineWithRelationsAndImageUrl } from '@/types';
 
 export default async function Page() {
@@ -16,7 +16,9 @@ export default async function Page() {
       };
     }),
   );
-  medicinesWithImageUrl.sort((a, b) => (a.isPaused === b.isPaused ? 0 : a.isPaused ? 1 : -1));
+  medicinesWithImageUrl.sort((a, b) =>
+    a.isPaused === b.isPaused ? 0 : a.isPaused ? 1 : -1,
+  );
 
   return <MedicineList medicines={medicinesWithImageUrl} />;
 }

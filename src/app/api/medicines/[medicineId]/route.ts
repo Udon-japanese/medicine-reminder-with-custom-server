@@ -1,7 +1,7 @@
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { prisma } from '@/lib/prismadb';
 import { medicineFormSchema } from '@/types/zodSchemas/medicineForm/schema';
-import { NextResponse } from 'next/server';
+
 import { convertMedicineForm } from '../utils';
 import { getUpdateMedicineData } from './utils';
 import { deleteImageByIdServer, getImageUrlByIdServer } from '../../lib/cloudinary';
@@ -13,7 +13,7 @@ export async function DELETE(req: Request, { params }: Params) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
@@ -29,7 +29,7 @@ export async function DELETE(req: Request, { params }: Params) {
     });
 
     if (!existingMedicine) {
-      return new NextResponse('Invalid Medicine ID', { status: 400 });
+      return new Response(JSON.stringify('Invalid Medicine ID'), { status: 400 });
     }
 
     const imageId = existingMedicine?.memo?.imageId;
@@ -45,10 +45,10 @@ export async function DELETE(req: Request, { params }: Params) {
       },
     });
 
-    return NextResponse.json(deletedMedicine);
+    return Response.json(deletedMedicine);
   } catch (err) {
     console.error(err);
-    return new NextResponse('Internal Server Error: Failed to process the request', {
+    return new Response(JSON.stringify('Internal Server Error'), {
       status: 500,
     });
   }
@@ -58,7 +58,7 @@ export async function PUT(req: Request, { params }: Params) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
@@ -67,26 +67,26 @@ export async function PUT(req: Request, { params }: Params) {
     const existingMedicine = await getMedicineById(medicineId);
 
     if (!existingMedicine) {
-      return new NextResponse('Invalid Medicine ID', { status: 400 });
+      return new Response(JSON.stringify('Invalid Medicine ID'), { status: 400 });
     }
 
     const { imageId, imageIdToDelete, medicineForm } = await req.json();
 
     const validation = medicineFormSchema.safeParse(medicineForm);
     if (!validation.success) {
-      return NextResponse.json(validation.error.errors, {
+      return Response.json(validation.error.errors, {
         status: 400,
       });
     }
 
     if (typeof imageId !== 'undefined' && typeof imageId !== 'string') {
-      return new NextResponse('Invalid Image ID', {
+      return new Response(JSON.stringify('Invalid Image ID'), {
         status: 400,
       });
     }
 
     if (typeof imageIdToDelete !== 'undefined' && typeof imageIdToDelete !== 'string') {
-      return new NextResponse('Invalid Image ID to delete', {
+      return new Response(JSON.stringify('Invalid Image ID to delete'), {
         status: 400,
       });
     }
@@ -95,7 +95,7 @@ export async function PUT(req: Request, { params }: Params) {
       const imageUrl = await getImageUrlByIdServer(imageId);
 
       if (!imageUrl) {
-        return new NextResponse('Invalid Image ID', {
+        return new Response(JSON.stringify('Invalid Image ID'), {
           status: 400,
         });
       }
@@ -105,7 +105,7 @@ export async function PUT(req: Request, { params }: Params) {
       const imageUrlToDelete = await getImageUrlByIdServer(imageIdToDelete);
 
       if (!imageUrlToDelete) {
-        return new NextResponse('Invalid Image ID to delete', {
+        return new Response(JSON.stringify('Invalid Image ID to delete'), {
           status: 400,
         });
       }
@@ -138,10 +138,10 @@ export async function PUT(req: Request, { params }: Params) {
       data,
     });
 
-    return NextResponse.json(updatedMedicine);
+    return Response.json(updatedMedicine);
   } catch (err) {
     console.error(err);
-    return new NextResponse('Internal Server Error: Failed to process the request', {
+    return new Response(JSON.stringify('Internal Server Error'), {
       status: 500,
     });
   }

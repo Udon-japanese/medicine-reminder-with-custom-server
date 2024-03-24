@@ -1,8 +1,46 @@
 import { DayOfWeek, FrequencyType } from '@prisma/client';
 
+const dayOfWeekMapping: { [key in DayOfWeek]: number } = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+};
+const reverseDayOfWeekMapping = Object.keys(dayOfWeekMapping).reduce(
+  (acc, key) => {
+    acc[dayOfWeekMapping[key as DayOfWeek]] = key as DayOfWeek;
+    return acc;
+  },
+  {} as { [key: number]: DayOfWeek },
+);
+export const getConvertedSpecificDaysOfWeek = (
+  specificDaysOfWeek: DayOfWeek[],
+): string => {
+  const numericDaysOfWeek = specificDaysOfWeek.map((d) => dayOfWeekMapping[d]);
+  const ranges = getRanges(numericDaysOfWeek);
+  const convertedSpecificDaysOfWeek = ranges.map((range) => {
+    const [start, end] = range
+      .split('～')
+      .map((d) =>
+        getDayOfWeekText(reverseDayOfWeekMapping[Number(d)]).replace('曜日', ''),
+      );
+    return !end || start === end ? start : `${start}～${end}`;
+  });
+
+  if (convertedSpecificDaysOfWeek.length === 0) {
+    return '';
+  } else {
+    return convertedSpecificDaysOfWeek.join(', ');
+  }
+};
+
 export function getFrequencyText(
   frequency: FrequencyType,
   options?: {
+    intakeTimesLength?: number;
     everyXDay?: string | number;
     specificDaysOfWeek?: DayOfWeek[];
     specificDaysOfMonth?: number[];
@@ -13,7 +51,8 @@ export function getFrequencyText(
 ) {
   switch (frequency) {
     case 'EVERYDAY':
-      return '毎日';
+      const intakeTimesLength = options?.intakeTimesLength;
+      return intakeTimesLength ? `1日${options?.intakeTimesLength}回` : '毎日';
     case 'EVERY_X_DAY': {
       const everyXDay = options?.everyXDay;
 
@@ -26,23 +65,18 @@ export function getFrequencyText(
     case 'SPECIFIC_DAYS_OF_WEEK': {
       const specificDaysOfWeek = options?.specificDaysOfWeek;
 
-      const isDayOfWeekArray = (array: unknown): array is DayOfWeek[] => {
-        return (
-          Array.isArray(array) &&
-          array.every((item) => Object.values(DayOfWeek).includes(item))
-        );
-      };
+      const isDayOfWeekArray = (array: unknown): array is DayOfWeek[] =>
+        Array.isArray(array) &&
+        array.every((item) => Object.values(DayOfWeek).includes(item));
 
       if (isDayOfWeekArray(specificDaysOfWeek)) {
-        const translatedSpecificDaysOfMonth = specificDaysOfWeek?.map((item) =>
-          getDayOfWeekText(item),
-        );
-        if (translatedSpecificDaysOfMonth.length === 0) {
+        const convertedSpecificDaysOfWeek =
+          getConvertedSpecificDaysOfWeek(specificDaysOfWeek);
+
+        if (!convertedSpecificDaysOfWeek) {
           return '特定の曜日：未選択';
         } else {
-          return translatedSpecificDaysOfMonth
-            .map((d) => d.replace('曜日', ''))
-            .join(' ');
+          return convertedSpecificDaysOfWeek;
         }
       } else {
         return '特定の曜日';
@@ -57,10 +91,16 @@ export function getFrequencyText(
       };
 
       if (isNumberArray(specificDaysOfMonth)) {
+        const ranges = getRanges(specificDaysOfMonth);
+
         if (specificDaysOfMonth.length === 0) {
-          return '月の特定日：未選択';
+          return `${defaultText}：未選択`;
         } else {
-          return `${defaultText}：${specificDaysOfMonth.join(' ')}`;
+          const daysOfMonthLength = specificDaysOfMonth.length;
+          if (ranges.length > 4) {
+            return `${specificDaysOfMonth[0]}日～${specificDaysOfMonth[daysOfMonthLength - 1]}日まで、${daysOfMonthLength}日`;
+          }
+          return ranges.join(', ');
         }
       } else {
         return defaultText;
@@ -91,6 +131,41 @@ export function getFrequencyText(
     default:
       throw new Error(`無効な頻度の値が渡されました: ${frequency}`);
   }
+}
+
+function getRanges(array: number[]): string[] {
+  const ranges = [];
+  let start = array[0];
+  let end = array[0];
+  let count = 1;
+
+  for (let i = 1; i < array.length; i++) {
+    if (array[i] - end === 1) {
+      end = array[i];
+      count++;
+    } else {
+      if (count > 2) {
+        ranges.push(`${start}～${end}`);
+      } else {
+        for (let j = start; j <= end; j++) {
+          ranges.push(`${j}`);
+        }
+      }
+      start = array[i];
+      end = array[i];
+      count = 1;
+    }
+  }
+
+  if (count > 2) {
+    ranges.push(`${start}～${end}`);
+  } else if (count > 0) {
+    for (let j = start; j <= end; j++) {
+      ranges.push(`${j}`);
+    }
+  }
+
+  return ranges;
 }
 
 export function getDayOfWeekText(dayOfWeek: DayOfWeek) {

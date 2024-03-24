@@ -1,12 +1,12 @@
 import { KeyboardEvent } from 'react';
 import { UseFormProps, UseFormReturn, useForm } from 'react-hook-form';
 
-export const useDefaultForm = <FORM_TYPE extends Record<string, unknown>>(
-  options: UseFormProps<FORM_TYPE> & {
-    defaultValues: FORM_TYPE;
+export const useDefaultForm = <T extends Record<string, unknown>>(
+  options: UseFormProps<T> & {
+    defaultValues: T;
   },
-): UseFormReturn<FORM_TYPE> => {
-  return useForm<FORM_TYPE>({
+): UseFormReturn<T> => {
+  return useForm<T>({
     mode: 'onBlur',
     shouldFocusError: false,
     criteriaMode: 'all',

@@ -28,7 +28,7 @@ export default function FrequencyTypeSelector() {
                   onChange(freqType);
                   
                   if (freqType === 'EVERYDAY') {
-                    if (getValues('frequency.everyday.weekendIntakeTimes').length === 0) {
+                    if (getValues('frequency.everyday.weekendIntakeTimes')?.length === 0) {
                       setValue(
                         'frequency.everyday.weekendIntakeTimes',
                         getValues('intakeTimes'),

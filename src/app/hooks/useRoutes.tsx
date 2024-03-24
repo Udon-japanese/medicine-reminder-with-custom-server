@@ -15,7 +15,7 @@ import { User } from '@prisma/client';
 
 export type Route = {
   label: string;
-  href: '/today' | '/calendar' | '/medicines' | '/mypage';
+  href: '/today' | '/calendar' | '/medicines' | '/settings';
   activeIcon: React.ReactNode;
   inactiveIcon: React.ReactNode;
   active: boolean;
@@ -46,17 +46,17 @@ export default function useRoutes(user: User) {
         href: '/medicines',
         activeIcon: <MUIIcon icon={Medication} />,
         inactiveIcon: <MUIIcon icon={MedicationOutlined} />,
-        active: pathname === '/medicines',
+        active: pathname.startsWith('/medicines'),
       },
       {
-        label: 'マイページ',
-        href: '/mypage',
+        label: '設定',
+        href: '/settings',
         activeIcon: <Avatar src={iconSrc} alt={username} isActive={true} />,
         inactiveIcon: <Avatar src={iconSrc} alt={username} isActive={false} />,
-        active: pathname === '/mypage' && !!user,
+        active: pathname.startsWith('/settings') && !!user,
       },
     ],
-    [pathname, user, iconSrc, username]
+    [pathname, user, iconSrc, username],
   );
 
   return routes;

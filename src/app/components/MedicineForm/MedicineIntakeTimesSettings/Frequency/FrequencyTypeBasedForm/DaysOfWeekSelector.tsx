@@ -21,7 +21,7 @@ export default function DaysOfWeekSelector() {
   };
 
   useEffect(() => {
-    if (watchedDaysOfWeek?.length !== 7) return;
+    if (!watchedDaysOfWeek || watchedDaysOfWeek?.length < 7) return;
     setValue('frequency.type', 'EVERYDAY');
     setValue('frequency.specificDaysOfWeek', []);
     trigger(['frequency.type', 'frequency.specificDaysOfWeek']);

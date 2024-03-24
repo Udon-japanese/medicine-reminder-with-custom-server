@@ -110,10 +110,10 @@ export async function getUpdateMedicineData({
     }
   }
 
-  if (memoText || (imageId && typeof imageId === 'string')) {
+  if (memoText || imageId) {
     const memoData = {
-      imageId,
-      text: memoText,
+      imageId: imageId || null,
+      text: memoText || null,
     };
 
     data.memo = {

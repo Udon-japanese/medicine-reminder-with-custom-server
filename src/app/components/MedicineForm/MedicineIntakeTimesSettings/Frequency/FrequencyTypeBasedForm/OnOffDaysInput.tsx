@@ -17,7 +17,7 @@ export default function OnOffDaysInput() {
           label='服用(何日間)'
           max={200}
           min={1}
-          placeholder='1~200'
+          placeholder='1～200'
           error={onDaysErr}
         />
       </div>
@@ -26,7 +26,7 @@ export default function OnOffDaysInput() {
         label='休薬(何日間)'
         max={200}
         min={1}
-        placeholder='1~200'
+        placeholder='1～200'
         error={offDaysErr}
       />
     </>

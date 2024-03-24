@@ -1,20 +1,20 @@
 import getCurrentUser from '@/app/actions/getCurrentUser';
 import { prisma } from '@/lib/prismadb';
 import { webPush } from '@/lib/webPush';
-import { NextResponse } from 'next/server';
+
 import { isInvalidPushSubscription } from './utils';
 
 export async function POST(req: Request) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
     const body = await req.json();
     if (isInvalidPushSubscription(body)) {
-      return new NextResponse('Invalid PushSubscription', { status: 400 });
+      return new Response(JSON.stringify('Invalid PushSubscription'), { status: 400 });
     }
 
     const updatedUser = await prisma.user.update({
@@ -42,10 +42,10 @@ export async function POST(req: Request) {
       }),
     );
 
-    return NextResponse.json(updatedUser);
+    return Response.json(updatedUser);
   } catch (error) {
     console.error(error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new Response(JSON.stringify('Internal Server Error'), { status: 500 });
   }
 }
 
@@ -53,13 +53,13 @@ export async function DELETE(req: Request) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser?.id || !currentUser?.email) {
-    return new NextResponse('Unauthorized', { status: 401 });
+    return new Response(JSON.stringify('Unauthorized'), { status: 401 });
   }
 
   try {
     const body = await req.json();
     if (isInvalidPushSubscription(body)) {
-      return new NextResponse('Invalid PushSubscription', { status: 400 });
+      return new Response(JSON.stringify('Invalid PushSubscription'), { status: 400 });
     }
 
     const { endpoint } = body;
@@ -71,7 +71,7 @@ export async function DELETE(req: Request) {
     });
 
     if (!existingPushSubscription) {
-      return new NextResponse('PushSubscription not found', { status: 404 });
+      return new Response(JSON.stringify('PushSubscription not found'), { status: 404 });
     }
 
     const deletedPushSubscription = await prisma.pushSubscription.delete({
@@ -80,9 +80,9 @@ export async function DELETE(req: Request) {
       },
     });
 
-    return NextResponse.json(deletedPushSubscription);
+    return Response.json(deletedPushSubscription);
   } catch (error) {
     console.error(error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new Response(JSON.stringify('Internal Server Error'), { status: 500 });
   }
 }

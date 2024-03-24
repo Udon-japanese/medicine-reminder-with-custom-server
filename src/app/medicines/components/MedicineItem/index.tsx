@@ -17,17 +17,18 @@ import { convertMinutesAndDate } from '@/utils/convertMinutesAndDate';
 import { getFrequencyText } from '@/utils/getMedicineText';
 import { formatPeriod } from '@/utils/formatPeriod';
 import {
-  EventBusy,
+  CalendarMonthOutlined,
   Notifications,
   NotificationsOff,
   PauseCircleFilled,
+  SmsOutlined,
 } from '@mui/icons-material';
 import { DayOfWeek } from '@prisma/client';
-import { useState } from 'react';
-import Memo from './Memo';
+import { MouseEventHandler, useState } from 'react';
 import MemoImageModal from './MemoImageModal';
 import { useRouter } from 'next/navigation';
 import { getCurrentDateIntakeTimes } from '@/utils/getCurrentDateIntakeTimes';
+import Image from 'next/image';
 
 export default function MedicineItem({
   medicine,
@@ -35,30 +36,44 @@ export default function MedicineItem({
   medicine: MedicineWithRelationsAndImageUrl;
 }) {
   const router = useRouter();
+  const now = new Date();
+  const today = startOfDay(new Date());
   const [showMemoImageModal, setShowMemoImageModal] = useState(false);
-  const { name, memo, stock, frequency, period, notify, isPaused } = medicine;
-  const intakeTimes = medicine.intakeTimes.sort((a, b) => a.time - b.time);
-  const stockText = getStockOutDate();
+  const { name, memo, stock, frequency, period, notify, isPaused, intakeTimes } =
+    medicine;
+  const currentDateIntakeTimes = getCurrentDateIntakeTimes({
+    medicine,
+    currentDate: today,
+  });
+  const { stockOutDateText, daysUntilStockOut } = getStockOutDate();
+  const getStockStyle = () => {
+    if (typeof daysUntilStockOut === 'undefined') return '';
 
-  const getFrequencyOptions = (
-    freqType: FrequencyType,
-    med: MedicineWithRelationsAndImageUrl,
-  ) => {
+    if (daysUntilStockOut <= 0) {
+      return styles.stockOut;
+    } else if (daysUntilStockOut <= 7) {
+      return styles.stockWarning;
+    } else {
+      return '';
+    }
+  };
+
+  const getFrequencyOptions = (freqType: FrequencyType) => {
     switch (freqType) {
       case 'EVERYDAY':
-        return {};
+        return { intakeTimesLength: currentDateIntakeTimes.length };
       case 'EVERY_X_DAY':
-        return { everyXDay: med.frequency!.everyXDay! };
+        return { everyXDay: frequency!.everyXDay! };
       case 'SPECIFIC_DAYS_OF_WEEK':
-        return { specificDaysOfWeek: med.frequency!.specificDaysOfWeek };
+        return { specificDaysOfWeek: frequency!.specificDaysOfWeek };
       case 'SPECIFIC_DAYS_OF_MONTH':
-        return { specificDaysOfMonth: med.frequency!.specificDaysOfMonth };
+        return { specificDaysOfMonth: frequency!.specificDaysOfMonth };
       case 'ODD_EVEN_DAY':
-        return { isOddDay: med.frequency!.oddEvenDay!.isOddDay };
+        return { isOddDay: frequency!.oddEvenDay!.isOddDay };
       case 'ON_OFF_DAYS':
         return {
-          onDays: med.frequency!.onOffDays!.onDays,
-          offDays: med.frequency!.onOffDays!.offDays,
+          onDays: frequency!.onOffDays!.onDays,
+          offDays: frequency!.onOffDays!.offDays,
         };
       default:
         throw new Error(
@@ -67,11 +82,12 @@ export default function MedicineItem({
     }
   };
   function getStockOutDate() {
-    const now = new Date();
-    const today = startOfDay(new Date());
-    const currentDateIntakeTimes = getCurrentDateIntakeTimes({medicine, currentDate: today});
-    if (!(period && currentDateIntakeTimes?.length > 0 && stock?.quantity && frequency)) {
-      return '';
+    if (!stock?.quantity && stock?.quantity !== 0) {
+      return {};
+    }
+    
+    if (!(period && currentDateIntakeTimes?.length > 0 && frequency)) {
+      return {};
     }
 
     const startDate = startOfDay(period.startDate);
@@ -115,7 +131,7 @@ export default function MedicineItem({
     };
 
     if (isAfter(today, addDays(startDate, days)) && days) {
-      return '';
+      return {};
     }
 
     let currentDateFromToday = today;
@@ -132,17 +148,38 @@ export default function MedicineItem({
       currentDateFromToday = addDays(currentDateFromToday, 1);
     }
 
+    let stockOutDateText = '';
     const differenceInDays = differenceInCalendarDays(currentDateFromToday, today);
     if (isSameDay(currentDateFromToday, today)) {
-      return '在庫切れ';
+      stockOutDateText = '在庫切れ';
     } else if (differenceInDays <= 30) {
-      return `残り${differenceInDays}日`;
+      stockOutDateText = `あと${differenceInDays}日`;
     } else {
       if (isSameYear(today, currentDateFromToday)) {
-        return format(currentDateFromToday, 'M月d日');
+        stockOutDateText = format(currentDateFromToday, 'M月d日まで');
       } else {
-        return format(currentDateFromToday, 'yyyy年M月d日');
+        stockOutDateText = format(currentDateFromToday, 'yyyy年M月d日まで');
       }
+    }
+
+    return {
+      stockOutDateText,
+      daysUntilStockOut: differenceInDays,
+    };
+  }
+  const handleClickImage: MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.stopPropagation();
+    setShowMemoImageModal(true);
+  };
+  const getIntakeTimesText = () => {
+    const intakeTimesLength = currentDateIntakeTimes.length;
+    const convertedIntakeTimes = currentDateIntakeTimes.map((intakeTime) =>
+      format(convertMinutesAndDate(intakeTime.time), 'H:mm'),
+    );
+    if (currentDateIntakeTimes.length <= 3) {
+      return convertedIntakeTimes.join(', ');
+    } else {
+      return `${convertedIntakeTimes[0]}～${convertedIntakeTimes[intakeTimesLength - 1]}${frequency?.type !== 'EVERYDAY' ? `の間に${intakeTimesLength}回` : ''}`;
     }
   };
 
@@ -155,37 +192,28 @@ export default function MedicineItem({
         {isPaused ? (
           <div className={styles.pausedContainer}>
             <div className={styles.pausedName}>{name}</div>
-            <div className={styles.pauseWrapper}>
+            <div className={styles.pauseIconWrapper}>
               <PauseCircleFilled fontSize='inherit' />
             </div>
           </div>
         ) : (
           <>
-            <div className={styles.medicineInfo}>
+            <div className={styles.medicineInfoContainer}>
               <div className={styles.name}>{name}</div>
               {intakeTimes.length > 0 && (
                 <>
-                  <div className={styles.infoContainer}>
-                    <div className={styles.infoLabel}>時間</div>
-                    <div className={styles.intakeTimesContainer}>
-                      {intakeTimes.map((intakeTime, i) => (
-                        <div key={i} className={styles.intakeTime}>
-                          {format(convertMinutesAndDate(intakeTime.time), 'H:mm')}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className={styles.infoContainer}>
-                    <div className={styles.infoLabel}>頻度</div>
-                    <div className={styles.frequency}>
+                  <div className={styles.medicineInfo}>
+                    <div>
                       {getFrequencyText(
                         frequency!.type,
-                        getFrequencyOptions(frequency!.type, medicine),
+                        getFrequencyOptions(frequency!.type),
                       )}
+                      {' - '}
+                      {getIntakeTimesText()}
                     </div>
                   </div>
-                  <div className={styles.infoContainer}>
-                    <div className={styles.infoLabel}>期間</div>
+                  <div className={styles.medicineInfo}>
+                    <CalendarMonthOutlined fontSize='inherit' />
                     <div>
                       {formatPeriod({
                         startDate: period?.startDate,
@@ -196,28 +224,41 @@ export default function MedicineItem({
                   </div>
                 </>
               )}
+              {memo?.text && (
+                <div className={styles.medicineInfo}>
+                  <SmsOutlined fontSize='inherit' />
+                  <div>{memo.text}</div>
+                </div>
+              )}
               {stock && (
-                <div className={styles.infoContainer}>
-                  <div className={styles.infoLabel}>在庫</div>
+                <div className={`${styles.stockContainer} ${getStockStyle()}`}>
                   <div>
+                    残り
                     {stock.quantity}
                     {medicine.unit}
                   </div>
-                  {intakeTimes.length > 0 && stockText && (
-                    <div className={styles.exhaustionDate}>
-                      <EventBusy fontSize='small' />
-                      {stockText}
-                    </div>
+                  {stockOutDateText && (
+                    <div className={styles.stockOutDateText}>{stockOutDateText}</div>
                   )}
                 </div>
               )}
-              {memo && <Memo memo={memo} setShowModal={setShowMemoImageModal} />}
             </div>
-            {notify !== null && (
-              <div className={styles.notifyContainer}>
-                <NotifyIcon notify={notify} />
-              </div>
-            )}
+            <div className={styles.medicineImageNotifyContainer}>
+              {memo?.imageUrl && (
+                <button type='button' onClick={handleClickImage}>
+                  <div className={styles.memoImageContainer}>
+                    <Image
+                      src={memo.imageUrl}
+                      alt='メモ画像'
+                      fill
+                      sizes='50vw'
+                      className={styles.memoImage}
+                    />
+                  </div>
+                </button>
+              )}
+              {notify !== null && <NotifyIcon notify={notify} />}
+            </div>
           </>
         )}
       </div>

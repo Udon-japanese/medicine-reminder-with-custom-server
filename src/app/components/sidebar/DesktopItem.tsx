@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import desktopItemStyles from '@styles/components/sidebar/desktopItem.module.scss';
+import styles from '@styles/components/sidebar/desktopItem.module.scss';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 
 export default function DesktopItem({
@@ -15,20 +15,26 @@ export default function DesktopItem({
   inactiveIcon: React.ReactNode;
   active: boolean;
 }) {
-  const isNotMyPage = href !== '/mypage';
+  const isNotSettings = href !== '/settings';
 
   return (
-    <li key={label} className={desktopItemStyles.li}>
-      <Link href={href} className={desktopItemStyles.item}>
+    <li key={label} className={styles.li}>
+      <Link href={href} className={styles.item}>
         <div
           className={`${
-            isNotMyPage ? desktopItemStyles.icon : ''
-          } ${active && isNotMyPage ? desktopItemStyles.active : ''}`}
+            isNotSettings ? styles.icon : ''
+          } ${active && isNotSettings ? styles.active : ''}`}
         >
           {active ? activeIcon : inactiveIcon}
           <VisuallyHidden.Root>{label}</VisuallyHidden.Root>
         </div>
-        <div className={isNotMyPage ? desktopItemStyles.label : desktopItemStyles.myPageLabel}>{label}</div>
+        <div
+          className={
+            isNotSettings ? styles.label : styles.settingsLabel
+          }
+        >
+          {label}
+        </div>
       </Link>
     </li>
   );

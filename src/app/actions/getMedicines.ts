@@ -35,6 +35,18 @@ const getMedicines = async () => {
       },
     });
 
+    medicines.forEach((medicine) => {
+      if (
+        medicine.frequency?.type === 'EVERYDAY' &&
+        medicine.frequency.everyday?.weekendIntakeTimes
+      ) {
+        medicine.frequency.everyday.weekendIntakeTimes.sort((a, b) => a.time - b.time);
+      }
+      if (medicine.intakeTimes) {
+        medicine.intakeTimes.sort((a, b) => a.time - b.time);
+      }
+    });
+
     return medicines;
   } catch (err) {
     return [];

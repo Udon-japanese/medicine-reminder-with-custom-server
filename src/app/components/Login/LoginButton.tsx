@@ -1,21 +1,20 @@
 'use client';
-import { signIn } from 'next-auth/react';
-import { useSearchParams } from 'next/navigation';
 import styles from '@styles/components/login/loginButton.module.scss';
+import { useState } from 'react';
+import LoginModal from './LoginModal';
 
 export default function LoginButton() {
-  const searchParams = useSearchParams();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   return (
-    <button
-      type='button'
-      className={styles.button}
-      onClick={() =>
-        signIn('google', {
-          callbackUrl: searchParams.get('callbackUrl') || '/today',
-        })
-      }
-    >
-      ログイン
-    </button>
+    <>
+      <button
+        type='button'
+        className={styles.button}
+        onClick={() => setShowLoginModal(true)}
+      >
+        ログイン
+      </button>
+      <LoginModal showModal={showLoginModal} setShowModal={setShowLoginModal} />
+    </>
   );
 }

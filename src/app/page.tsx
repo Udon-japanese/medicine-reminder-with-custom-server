@@ -1,7 +1,7 @@
-import Link from 'next/link';
 import getCurrentUser from './actions/getCurrentUser';
 import LoginButton from './components/Login/LoginButton';
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 
 export default async function Page() {
   const currentUser = await getCurrentUser();
@@ -13,10 +13,5 @@ export default async function Page() {
     );
   }
 
-  return (
-    <div>
-      <h1>ようこそ、{currentUser.name}さん</h1>
-      <Link href='/today'>本日の予定を確認しましょう。</Link>
-    </div>
-  );
+  redirect('/today');
 }

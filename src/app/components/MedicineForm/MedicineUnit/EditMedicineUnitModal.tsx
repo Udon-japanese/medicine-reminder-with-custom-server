@@ -14,6 +14,7 @@ import { Dispatch, SetStateAction } from 'react';
 import { FormProvider, SubmitHandler, useFieldArray } from 'react-hook-form';
 import styles from '@styles/components/medicineForm/medicineUnit/editMedicineUnitModal.module.scss';
 import LinerProgress from '../../LinerProgress';
+import Header from '../../Header';
 
 export default function EditMedicineUnitModal({
   showModal,
@@ -27,12 +28,7 @@ export default function EditMedicineUnitModal({
   const router = useRouter();
   const formMethods = useDefaultForm<MedicineUnitForm>({
     resolver: zodResolver(medicineUnitFormSchema),
-    mode: 'onBlur',
-    shouldFocusError: false,
     defaultValues: {
-      units: [],
-    },
-    values: {
       units: medicineUnits.map((u) => ({ unit: u.unit })),
     },
   });
@@ -73,8 +69,8 @@ export default function EditMedicineUnitModal({
       });
     }
 
-    setShowModal(false);
     router.refresh();
+    setShowModal(false);
   };
   const onClose = () => {
     handleSubmit(onSubmit)();
@@ -92,30 +88,12 @@ export default function EditMedicineUnitModal({
           <div className={styles.container}>
             <LinerProgress show={isSubmitting} className={styles.desktopLinerProgress} />
             <div className={styles.formContainer}>
-              <div className={styles.desktopHeaderContainer}>
-                <div>単位を編集</div>
-                <button
-                  className={styles.desktopCloseButtonContainer}
-                  onClick={onClose}
-                  type='button'
-                >
-                  <Close fontSize='medium' />
-                </button>
-              </div>
-              <div className={styles.mobileHeaderContainer}>
-                <LinerProgress
-                  show={isSubmitting}
-                  className={styles.mobileLinerProgress}
-                />
-                <button
-                  className={styles.mobileCloseButtonContainer}
-                  onClick={onClose}
-                  type='button'
-                >
-                  <Close />
-                </button>
-                <div className={styles.mobileHeaderText}>単位を編集</div>
-              </div>
+              <Header
+                headerText='単位を編集'
+                actionIcon={<Close fontSize='medium' />}
+                action={onClose}
+                showMobileLinerProgress={isSubmitting}
+              />
               <div className={styles.unitsContainer}>
                 {fields.map((field, index) => {
                   const err = errors?.units?.[index]?.unit?.message;
@@ -133,7 +111,7 @@ export default function EditMedicineUnitModal({
                         <button
                           type='button'
                           className={`${styles.deleteButton} ${isOnlyOneUnit || isSubmitting ? styles.isDeleteButtonDisabled : ''}`}
-                          disabled={isSubmitting}
+                          disabled={isOnlyOneUnit || isSubmitting}
                           onClick={() => {
                             if (isOnlyOneUnit) return;
                             remove(index);

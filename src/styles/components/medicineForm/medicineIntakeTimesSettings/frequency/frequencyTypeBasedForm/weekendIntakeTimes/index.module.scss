@@ -1,0 +1,16 @@
+@use '../../../../label-value-container' as *;
+
+.enable-weekend-intake-times {
+  @include label-value-container;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-weekends-button {
+  @include text-sm;
+  color: $gray-400;
+}

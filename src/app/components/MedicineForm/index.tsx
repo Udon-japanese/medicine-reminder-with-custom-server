@@ -23,6 +23,7 @@ import styles from '@styles/components/medicineForm/index.module.scss';
 import { MedicineUnit as TMedicineUnit } from '@prisma/client';
 import MedicineUnit from '@/app/components/MedicineForm/MedicineUnit';
 import LinerProgress from '../LinerProgress';
+import Header from '../Header';
 
 export default function MedicineForm({
   medicineUnits,
@@ -49,8 +50,6 @@ export default function MedicineForm({
 
   const formMethods = useDefaultForm<TMedicineForm>({
     resolver: zodResolver(medicineFormSchema),
-    mode: 'onBlur',
-    shouldFocusError: false,
     defaultValues: {
       name: '',
       intakeTimes: [],
@@ -106,7 +105,7 @@ export default function MedicineForm({
       imageId?: string;
       imageIdToDelete?: string;
     } = { medicineForm };
-  
+
     if (imageId) {
       bodyObj.imageId = imageId;
     }
@@ -225,20 +224,16 @@ export default function MedicineForm({
 
   return (
     <div className={styles.container}>
-      <div className={styles.mobileHeaderContainer}>
-        <LinerProgress show={isSubmitting} className={styles.mobileLinerProgress} />
-        <button type='button' onClick={router.back}>
-          <div className={styles.headerIconContainer}>
-            <ArrowBack />
-          </div>
-        </button>
-        <div className={styles.headerText}>お薬を{isEditMode ? '編集' : '追加'}</div>
-      </div>
       <LinerProgress show={isSubmitting} className={styles.desktopLinerProgress} />
+      <Header
+        headerText={`お薬を${isEditMode ? '編集' : '追加'}`}
+        showMobileLinerProgress={isSubmitting}
+        mobileHeaderPosition='fixed'
+        action={router.back}
+        actionIcon={<ArrowBack />}
+        hideActionButtonOnDesktop
+      />
       <div className={styles.formContainer}>
-        <div className={styles.desktopHeaderContainer}>
-          お薬を{isEditMode ? '編集' : '登録'}
-        </div>
         <FormProvider {...formMethods}>
           <form onSubmit={handleSubmit(onSubmit)} onKeyDown={handleFormKeyDown}>
             <MedicineNameInput />

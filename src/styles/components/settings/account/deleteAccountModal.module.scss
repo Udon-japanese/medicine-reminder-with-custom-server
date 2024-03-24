@@ -1,0 +1,54 @@
+@use '../../button' as *;
+
+.container {
+  padding: size(3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.warning-icon-wrapper {
+  @include text-4xl;
+  width: size(13);
+  height: size(13);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-bottom: size(1);
+  background-color: $red-200;
+  color: $red-600;
+  border-radius: 9999px;
+}
+
+.header {
+  @include font-semibold;
+  margin-top: size(4);
+}
+
+.description {
+  @include text-sm;
+  margin-top: size(3);
+  padding: 0 size(3);
+}
+
+.buttons-container {
+  margin-top: size(4);
+  display: flex;
+  flex-direction: column;
+  gap: size(3);
+  width: 80%;
+}
+
+.cancel-button {
+  @include button($white);
+  padding: size(2) size(3);
+  border: 1px solid $gray-300;
+}
+
+.delete-account-button {
+  @include button($red-600);
+  padding: size(2) size(3);
+  border: 1px solid $red-600;
+  color: $white;
+}
