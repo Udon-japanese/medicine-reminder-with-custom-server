@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 export default async function middleware(req: NextRequest) {
+  const BASE_URL = process.env.NEXTAUTH_URL!;
   const pathname = req.nextUrl.pathname;
   const reqHeaders = new Headers(req.headers);
   reqHeaders.set('x-pathname', pathname);
@@ -12,8 +13,8 @@ export default async function middleware(req: NextRequest) {
     });
   }
 
-  const loginURL = new URL('/login', req.nextUrl);
-  loginURL.searchParams.set('callbackUrl', req.nextUrl.href);
+  const loginURL = new URL('/login', BASE_URL);
+  loginURL.searchParams.set('callbackUrl', BASE_URL);
   const LOGIN_URL = loginURL.href;
   const c = cookies();
   const allCookies = c
@@ -29,7 +30,7 @@ export default async function middleware(req: NextRequest) {
     'Content-Type': 'application/json',
     Cookie: allCookies,
   };
-  const sessionAPIURL = new URL(`/api/auth/session`, req.nextUrl);
+  const sessionAPIURL = new URL(`/api/auth/session`, BASE_URL);
   const response = await fetch(sessionAPIURL.href, {
     headers,
     cache: 'no-store',

@@ -21,13 +21,14 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async redirect({ url, baseUrl }) {
+      const BASE_URL = process.env.NEXTAUTH_URL!;
       if (url === '/login' || url === `${baseUrl}/login`) {
-        return `${baseUrl}/medicines`;
+        return `${BASE_URL}/medicines`;
       }
       
-      if (url.startsWith('/')) return `${baseUrl}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
-      return `${baseUrl}/medicines`;
+      if (url.startsWith('/')) return `${BASE_URL}${url}`;
+      else if (new URL(url).origin === BASE_URL) return url;
+      return `${BASE_URL}/medicines`;
     },
   },
   events: {
