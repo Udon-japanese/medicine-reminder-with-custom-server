@@ -11,8 +11,8 @@ export default function LoginForm() {
     <div className={styles.container}>
       <button
         type='button'
-        onClick={() => {
-          signIn('google', {
+        onClick={async () => {
+          await signIn('google', {
             callbackUrl: searchParams.get('callbackUrl') || '/medicines',
           });
         }}

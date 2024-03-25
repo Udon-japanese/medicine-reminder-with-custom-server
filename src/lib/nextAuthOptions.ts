@@ -25,10 +25,8 @@ export const authOptions: NextAuthOptions = {
       if (url === '/login' || url === `${baseUrl}/login`) {
         return `${BASE_URL}/medicines`;
       }
-      
-      if (url.startsWith('/')) return `${BASE_URL}${url}`;
-      else if (new URL(url).origin === baseUrl) return url;
-      return `${BASE_URL}/medicines`;
+
+      return Promise.resolve(url);
     },
   },
   events: {
