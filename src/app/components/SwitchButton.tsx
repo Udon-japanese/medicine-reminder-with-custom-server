@@ -1,6 +1,6 @@
 import * as Switch from "@radix-ui/react-switch";
 import { Controller, FieldValues, useFormContext } from "react-hook-form";
-import toggleButtonStyles from "@styles/components/toggleButton.module.scss";
+import styles from "@styles/components/toggleButton.module.scss";
 import { FieldByType } from "@/types/FieldByType";
 
 type Props<T extends FieldValues> = {
@@ -23,10 +23,10 @@ export default function SwitchButton<T extends FieldValues = never>(props: Props
             trigger(name);
             onCheckedChange?.(newValue);
           }}
-          className={toggleButtonStyles.root}
+          className={styles.root}
           {...buttonProps}
         >
-          <Switch.Thumb className={toggleButtonStyles.thumb} />
+          <Switch.Thumb className={styles.thumb} />
         </Switch.Root>
       )}
     />

@@ -1,6 +1,6 @@
 import { usePathname } from 'next/navigation';
 import React, { useMemo } from 'react';
-import globalStyles from '@styles/styles.module.scss';
+import styles from '@styles/styles.module.scss';
 import Avatar from '../components/Avatar';
 import {
   CalendarMonth,
@@ -63,5 +63,5 @@ export default function useRoutes(user: User) {
 }
 
 function MUIIcon({ icon: Icon }: { icon: SvgIconComponent }) {
-  return <Icon className={globalStyles.icon} />;
+  return <Icon className={styles.icon} />;
 }

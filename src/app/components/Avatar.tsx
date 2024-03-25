@@ -1,5 +1,5 @@
 'use client';
-import avatarStyles from '@styles/components/avatar.module.scss';
+import styles from '@styles/components/avatar.module.scss';
 import globalStyles from '@styles/styles.module.scss';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 import { AccountCircle } from '@mui/icons-material';
@@ -28,8 +28,8 @@ export default function Avatar({
   return (
     <>
       <div
-        className={`${avatarStyles.root} ${
-          isActive ? avatarStyles.active : ''
+        className={`${styles.root} ${
+          isActive ? styles.active : ''
         }`}
       >
         <Image
@@ -38,7 +38,7 @@ export default function Avatar({
           fill
           priority
           sizes="50vw"
-          className={avatarStyles.image}
+          className={styles.image}
         />
       </div>
       <VisuallyHidden.Root>{alt}のアイコン</VisuallyHidden.Root>
