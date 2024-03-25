@@ -27,7 +27,7 @@ export const authOptions: NextAuthOptions = {
       }
       
       if (url.startsWith('/')) return `${BASE_URL}${url}`;
-      else if (new URL(url).origin === BASE_URL) return url;
+      else if (new URL(url).origin === baseUrl) return url;
       return `${BASE_URL}/medicines`;
     },
   },

@@ -14,7 +14,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   const loginURL = new URL('/login', BASE_URL);
-  loginURL.searchParams.set('callbackUrl', BASE_URL);
+  loginURL.searchParams.set('callbackUrl', `${BASE_URL}${pathname}`);
   const LOGIN_URL = loginURL.href;
   const c = cookies();
   const allCookies = c
