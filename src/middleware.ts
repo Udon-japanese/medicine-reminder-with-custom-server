@@ -13,6 +13,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   const loginURL = new URL('/login', req.url);
+  loginURL.searchParams.set('callbackUrl', req.url);
   const LOGIN_URL = loginURL.href;
   const c = cookies();
   const allCookies = c
