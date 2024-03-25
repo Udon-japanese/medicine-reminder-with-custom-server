@@ -10,7 +10,7 @@
     "build": "run-p build:next build:server",
     "build:next": "prisma generate && prisma db push && next build",
     "build:server": "tsc -p tsconfig.server.json",
-    "start": "cross-env NODE_ENV=production ts-node -r --max_old_space_size=512 ts-node/register tsconfig-paths/register src/server/index.ts",
+    "start": "cross-env NODE_ENV=production ts-node -r ts-node/register tsconfig-paths/register --max_old_space_size=512 src/server/index.ts",
     "lint": "next lint"
   },
   "dependencies": {
