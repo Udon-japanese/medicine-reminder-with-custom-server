@@ -12,8 +12,8 @@ export default async function middleware(req: NextRequest) {
     });
   }
 
-  const loginURL = new URL('/login', req.url);
-  loginURL.searchParams.set('callbackUrl', req.url);
+  const loginURL = new URL('/login', req.nextUrl);
+  loginURL.searchParams.set('callbackUrl', req.nextUrl.href);
   const LOGIN_URL = loginURL.href;
   const c = cookies();
   const allCookies = c
@@ -29,7 +29,7 @@ export default async function middleware(req: NextRequest) {
     'Content-Type': 'application/json',
     Cookie: allCookies,
   };
-  const sessionAPIURL = new URL(`/api/auth/session`, req.url);
+  const sessionAPIURL = new URL(`/api/auth/session`, req.nextUrl);
   const response = await fetch(sessionAPIURL.href, {
     headers,
     cache: 'no-store',
