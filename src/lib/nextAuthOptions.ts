@@ -3,7 +3,6 @@ import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prismadb';
 import { NextAuthOptions } from 'next-auth';
 import { Adapter } from 'next-auth/adapters';
-import { redirect } from 'next/navigation';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as Adapter,
@@ -51,8 +50,6 @@ export const authOptions: NextAuthOptions = {
           data,
         });
       }
-
-      if (isNewUser) redirect('/medicines');
     },
   },
   session: {

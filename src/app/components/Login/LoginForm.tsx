@@ -13,7 +13,7 @@ export default function LoginForm() {
         type='button'
         onClick={() => {
           signIn('google', {
-            callbackUrl: searchParams.get('callbackUrl') || '/today',
+            callbackUrl: searchParams.get('callbackUrl') || '/medicines',
           });
         }}
         className={styles.loginWithGoogleButton}
