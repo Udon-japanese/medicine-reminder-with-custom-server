@@ -1,15 +1,3 @@
-const headers = [
-  'Accept',
-  'Accept-Version',
-  'Content-Length',
-  'Content-MD5',
-  'Content-Type',
-  'Date',
-  'X-Api-Version',
-  'X-CSRF-Token',
-  'X-Requested-With',
-];
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -30,7 +18,7 @@ const nextConfig = {
   sassOptions: {
     additionalData: "@use '@styles/variables' as *;",
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config) => {
     const rules = config.module.rules
       .find((rule) => typeof rule.oneOf === 'object')
       .oneOf.filter((rule) => Array.isArray(rule.use));

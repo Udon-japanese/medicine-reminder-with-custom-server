@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import '@unocss/reset/tailwind.css';
 import '@styles/global.scss';
 
-export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 const notojp = Noto_Sans_JP({
   subsets: ['latin'],
