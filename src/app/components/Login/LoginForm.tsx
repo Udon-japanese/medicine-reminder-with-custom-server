@@ -11,11 +11,11 @@ export default function LoginForm() {
     <div className={styles.container}>
       <button
         type='button'
-        onClick={async () => {
-          await signIn('google', {
+        onClick={() =>
+          signIn('google', {
             callbackUrl: searchParams.get('callbackUrl') || '/medicines',
-          });
-        }}
+          })
+        }
         className={styles.loginWithGoogleButton}
       >
         <Google />

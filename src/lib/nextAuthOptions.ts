@@ -19,16 +19,6 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
-  callbacks: {
-    async redirect({ url, baseUrl }) {
-      const BASE_URL = process.env.NEXTAUTH_URL!;
-      if (url === '/login' || url === `${baseUrl}/login`) {
-        return `${BASE_URL}/medicines`;
-      }
-
-      return Promise.resolve(url);
-    },
-  },
   events: {
     async signIn({ isNewUser, user }) {
       const existingMedicineUnits = await prisma.medicineUnit.findMany({
